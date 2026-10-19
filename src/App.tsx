@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Logo } from './components/Logo';
 import { TabBar, type TabId } from './components/TabBar';
+import { FeierProvider } from './components/Feier';
 import { MeldungProvider } from './components/Ui';
-import { useOnline } from './hooks/daten';
+import { useOnline, useSession, useTick } from './hooks/daten';
+import { dauerUhr } from './lib/zeit';
 import { WetterProvider } from './hooks/WetterKontext';
 import { Angeln } from './tabs/Angeln';
 import { Erfolge } from './tabs/Erfolge';
@@ -31,6 +33,7 @@ export function App() {
 
   return (
     <MeldungProvider>
+      <FeierProvider>
       <WetterProvider>
         <div className="wrap">
           <header className="top">
@@ -53,8 +56,23 @@ export function App() {
             {tab === 'erfolge' && <Erfolge />}
           </section>
         </div>
-        <TabBar active={tab} onChange={geheZu} />
+        <TabBar active={tab} onChange={geheZu} oben={tab !== 'angeln' && <LiveBalken onClick={() => geheZu('angeln')} />} />
       </WetterProvider>
+      </FeierProvider>
     </MeldungProvider>
+  );
+}
+
+/** Auf allen anderen Tabs: „Du angelst seit 1:23 h · 3 Bisse · 1 Fisch“. Tippen springt zurück. */
+function LiveBalken({ onClick }: { onClick: () => void }) {
+  const s = useSession();
+  const jetzt = useTick(!!s, 15000);
+  if (!s) return null;
+  const n = s.faenge.length, b = s.bisse.length;
+  return (
+    <button type="button" className="livebar" onClick={onClick}>
+      <span className="pulse" />
+      <span>Du angelst seit {dauerUhr(jetzt - s.start).slice(0, -3)} h · {b} {b === 1 ? 'Biss' : 'Bisse'} · {n} Fisch{n === 1 ? '' : 'e'}</span>
+    </button>
   );
 }

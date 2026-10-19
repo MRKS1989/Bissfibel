@@ -7,9 +7,10 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'erfolge', label: 'Erfolge', icon: '' },
 ];
 
-export function TabBar({ active, onChange }: { active: TabId; onChange: (t: TabId) => void }) {
+export function TabBar({ active, onChange, oben }: { active: TabId; onChange: (t: TabId) => void; oben?: React.ReactNode }) {
   return (
     <nav className="tabs" aria-label="Bereiche">
+      {oben}
       <div className="in" role="tablist">
         {TABS.map((t) => (
           <button

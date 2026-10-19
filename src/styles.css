@@ -360,3 +360,7 @@ label.f{flex:0 0 auto}
 .row>label.f{flex:1 1 130px}
 .fishrow>label.f{flex:1 1 120px}
 .fishrow>label.f.len{flex:0 0 96px}
+.rankbadge.t1{box-shadow:0 0 0 6px #B0713A}
+.rankbadge.t2{box-shadow:0 0 0 6px #9AA6AE}
+.rankbadge.t3{box-shadow:0 0 0 6px var(--gold)}
+.picks button small{display:block}

@@ -156,11 +156,13 @@ function LiveSession({ s, onEnde }: { s: LaufendeSession; onEnde: (id: string) =
     const vorher = await stand();
     const gw = w ?? { lat: 50.9, lon: 13.4, typ: 'see' as const, name: 'Gewässer' };
     const { s: wx } = await schnappschussLaden(gw, s.zielfisch, s.start);
+    const faenge: Fang[] = [];
+    for (const f of s.faenge) faenge.push({ ...f, wetter: (await schnappschussLaden(gw, f.fischart, f.zeit)).s });
     const t = teile(s.start);
     const tag: Angeltag = {
       id: neueId('a'), datum: t.key, beginn: t.hhmm, startTs: s.start, dauerH: Math.max(0.1, Math.round((Date.now() - s.start) / 36e4) / 10),
       gewaesserId: s.gewaesserId, gewaesserName: w?.name ?? 'Gewässer', zielfisch: s.zielfisch, live: true,
-      bisse: Math.max(s.bisse.length, s.faenge.length), bissZeiten: s.bisse, faenge: s.faenge, wasserCheck: !!s.wasserCheck,
+      bisse: Math.max(s.bisse.length, s.faenge.length), bissZeiten: s.bisse, faenge, wasserCheck: !!s.wasserCheck,
       wetter: { ...wx, truebung: s.truebung },
     };
     await db.angeltage.put(tag);
@@ -323,7 +325,7 @@ function Nachtrag({ onClose }: { onClose: () => void }) {
         const k = koeder.find((x) => x.id === z.koederId);
         const len = +z.laenge || undefined;
         const f: Fang = { id: neueId('f'), zeit: ts, fischart: z.art, laengeCm: len, koeder: k?.name, koederId: k?.id, koederFarbe: k?.farbe,
-          score: hatProfil(z.art) && z.art === art ? wx.score : undefined };
+          score: hatProfil(z.art) && z.art === art ? wx.score : undefined, wetter: wx };
         const best = bisherBest([...alle, ...faenge], z.art);
         if (len && len > best) { pbs.push(`${artName(z.art)} ${len} cm`); feiern({ art: 'pb', fisch: z.art, laenge: len, vorher: best }); }
         if (z.foto) f.fotoId = await speichereFoto(z.foto);

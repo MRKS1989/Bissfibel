@@ -3,7 +3,8 @@ import { Logo } from './components/Logo';
 import { TabBar, type TabId } from './components/TabBar';
 import { FeierProvider } from './components/Feier';
 import { MeldungProvider } from './components/Ui';
-import { useOnline, useSession, useTick } from './hooks/daten';
+import { useAngeltage, useEinstellungen, useKoeder, useOnline, useSession, useTick } from './hooks/daten';
+import { abzeichen, stufenKeys } from './lib/punkte';
 import { dauerUhr } from './lib/zeit';
 import { WetterProvider } from './hooks/WetterKontext';
 import { Angeln } from './tabs/Angeln';
@@ -16,6 +17,7 @@ export function App() {
   const [tab, setTab] = useState<TabId>('heute');
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const online = useOnline();
+  const neu = useNeueAbzeichen();
 
   function toggleTheme() {
     const t = nextTheme(theme);
@@ -56,7 +58,7 @@ export function App() {
             {tab === 'erfolge' && <Erfolge />}
           </section>
         </div>
-        <TabBar active={tab} onChange={geheZu} oben={tab !== 'angeln' && <LiveBalken onClick={() => geheZu('angeln')} />} />
+        <TabBar active={tab} onChange={geheZu} oben={tab !== 'angeln' && <LiveBalken onClick={() => geheZu('angeln')} />} neu={neu && tab !== 'erfolge'} />
       </WetterProvider>
       </FeierProvider>
     </MeldungProvider>
@@ -75,4 +77,12 @@ function LiveBalken({ onClick }: { onClick: () => void }) {
       <span>Du angelst seit {dauerUhr(jetzt - s.start).slice(0, -3)} h · {b} {b === 1 ? 'Biss' : 'Bisse'} · {n} Fisch{n === 1 ? '' : 'e'}</span>
     </button>
   );
+}
+
+function useNeueAbzeichen(): boolean {
+  const tage = useAngeltage();
+  const koeder = useKoeder();
+  const e = useEinstellungen();
+  if (!e.geladen) return false;
+  return stufenKeys(abzeichen(tage, koeder)).some((k) => !e.gesehenAbzeichen.includes(k));
 }

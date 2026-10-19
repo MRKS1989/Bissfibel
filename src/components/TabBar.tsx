@@ -7,7 +7,7 @@ const TABS: { id: TabId; label: string; icon: string }[] = [
   { id: 'erfolge', label: 'Erfolge', icon: '' },
 ];
 
-export function TabBar({ active, onChange, oben }: { active: TabId; onChange: (t: TabId) => void; oben?: React.ReactNode }) {
+export function TabBar({ active, onChange, oben, neu }: { active: TabId; onChange: (t: TabId) => void; oben?: React.ReactNode; neu?: boolean }) {
   return (
     <nav className="tabs" aria-label="Bereiche">
       {oben}
@@ -19,6 +19,7 @@ export function TabBar({ active, onChange, oben }: { active: TabId; onChange: (t
             role="tab"
             aria-selected={active === t.id}
             aria-controls={`t-${t.id}`}
+            style={{ position: 'relative' }}
             onClick={() => onChange(t.id)}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
@@ -32,6 +33,7 @@ export function TabBar({ active, onChange, oben }: { active: TabId; onChange: (t
               )}
             </svg>
             {t.label}
+            {t.id === 'erfolge' && neu && <span className="dot" aria-label="neues Abzeichen" />}
           </button>
         ))}
       </div>

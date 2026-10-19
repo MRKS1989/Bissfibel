@@ -23,6 +23,7 @@ export type Fang = {
   koeder?: string; koederId?: string; koederFarbe?: Farbfamilie;
   fotoId?: string; zurueckgesetzt?: boolean;
   score?: number; // Bisswert zum Fangzeitpunkt
+  wetter?: WetterSchnappschuss; // Bedingungen zum Fangzeitpunkt
 };
 
 export type WetterSchnappschuss = Partial<Schnappschuss> & {

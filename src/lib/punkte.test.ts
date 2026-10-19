@@ -102,3 +102,22 @@ describe('Lernen', () => {
     expect(farbAuswertung('klar', l)).toBeNull();
   });
 });
+
+import { rueckblick, verfuegbareJahre } from './rueckblick';
+
+describe('Jahresrückblick', () => {
+  const l = beispielTage();
+  it('Jahre: vergangene immer, laufendes erst ab Dezember', () => {
+    expect(verfuegbareJahre(l, zeitpunkt('2026-10-19'))).toEqual([2025]);
+    expect(verfuegbareJahre([...l, { ...l[0], datum: '2026-05-01' }], zeitpunkt('2026-12-02'))).toEqual([2026, 2025]);
+  });
+  it('fasst ein Jahr zusammen', () => {
+    const r = rueckblick(l, 2025);
+    expect(r.tage).toBe(l.filter((t) => t.datum.startsWith('2025')).length);
+    expect(r.faenge + 0).toBeGreaterThan(0);
+    expect(r.neuePBs.length).toBeGreaterThan(0);
+    expect(r.meistGewaesser?.name).toMatch(/Beispiel/);
+    expect(r.rangStart).toBe('Wurmbader');
+    expect(r.neueAbzeichen).toContain('Erster Wurf');
+  });
+});

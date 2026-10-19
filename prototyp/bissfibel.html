@@ -1,0 +1,1247 @@
+<!doctype html>
+<html lang="de">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Bissfibel Prototyp</title></head>
+<body>
+<title>Bissfibel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: mobile-first one-column app, bottom tab bar; the score reads like a water-level gauge (Pegellatte). */
+:root{
+  --bg:#EEF2EF; --surface:#F9FBF9; --ink:#0E3B43; --muted:#4A5D57; --line:#D2DCD6;
+  --water:#1F6F78; --water-soft:#DCEBEA; --accent:#E8552B; --accent-soft:#FBE3DA; --accent-btn:#C8431E; --on-accent:#FFFFFF;
+  --good:#2E7D4F; --warn:#B7791F; --bad:#B23A3A; --gold:#B8862B;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Public Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1A1C; --surface:#13272A; --ink:#E4ECE8; --muted:#94A49D; --line:#24383B;
+  --water:#6CB9B4; --water-soft:#183330; --accent:#F26B3A; --accent-soft:#3A2119; --accent-btn:#F26B3A; --on-accent:#0B1A1C;
+  --good:#5BBF84; --warn:#E0A84A; --bad:#E07070; --gold:#E2B656; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1A1C; --surface:#13272A; --ink:#E4ECE8; --muted:#94A49D; --line:#24383B;
+  --water:#6CB9B4; --water-soft:#183330; --accent:#F26B3A; --accent-soft:#3A2119; --accent-btn:#F26B3A; --on-accent:#0B1A1C;
+  --good:#5BBF84; --warn:#E0A84A; --bad:#E07070; --gold:#E2B656; color-scheme:dark}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45}
+.wrap{max-width:600px;margin:0 auto;padding-inline:16px;padding-block:16px 140px;display:flex;flex-direction:column;gap:14px}
+header.top{display:flex;align-items:center;justify-content:space-between;gap:12px}
+h1{font-family:var(--f-display);font-weight:700;font-size:32px;margin:0;line-height:1}
+h1.logo{display:flex;align-items:flex-end;gap:1px;font-family:var(--f-display);font-weight:800;font-size:34px;line-height:.8;letter-spacing:.01em;color:var(--ink)}
+h1.logo .nd{color:var(--water)}
+.tape-i{width:8px;height:25px;margin:0 2px 0 2px}
+.tp-b{fill:#F2C230}.tp-t{fill:#3B2F12}.tp-c{fill:#8FA9BE}.tp-m{fill:var(--accent)}
+.bone-i{width:12px;height:25px;margin:0 1px}.fb-l{stroke:var(--water)}.fb-h{fill:var(--water)}.fb-e{fill:var(--bg)}
+h2{font-family:var(--f-display);font-weight:600;font-size:21px;margin:0;line-height:1.1;text-wrap:balance}
+h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0;font-weight:600}
+.demo-pill{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--water);background:var(--water-soft);padding:4px 8px;border-radius:6px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.tab{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.between{justify-content:space-between}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);font-weight:600;flex:1 1 130px;min-width:0}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 10px;width:100%;min-width:0}
+input[type=range]{padding:0;accent-color:var(--accent);background:none;border:0}
+input[type=file]{font-size:14px;padding:7px}
+input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px}
+button.primary{background:var(--accent-btn);border-color:var(--accent-btn);color:var(--on-accent)}
+button.ghost{background:none;border-color:transparent;color:var(--muted);padding:6px 8px}
+button.danger{color:var(--bad)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.hint{font-size:12px;color:var(--muted);margin:0}
+a{color:var(--water)}
+details summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--water);list-style:none}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"+ "}
+details[open] summary::before{content:"– "}
+details .inner{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+
+/* species chips */
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:0 0 auto;border-radius:99px;padding:7px 14px;font-size:14px;background:var(--surface)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* tabs + live banner */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+.livebar{width:100%;border:0;border-radius:0;background:var(--accent-btn);color:var(--on-accent);padding:8px 16px;font-size:14px;display:flex;justify-content:center;gap:10px;align-items:center}
+.livebar .pulse{width:9px;height:9px;border-radius:50%;background:var(--on-accent)}
+@media (prefers-reduced-motion:no-preference){.livebar .pulse,.live-dot{animation:pulse 1.6s ease-in-out infinite}}
+@keyframes pulse{50%{opacity:.35}}
+nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);width:100%;max-width:600px}
+nav.tabs .in button{border:0;border-radius:0;background:none;padding:9px 4px 11px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;border-top:3px solid transparent;position:relative}
+nav.tabs .in button[aria-selected="true"]{color:var(--ink);border-top-color:var(--accent)}
+nav.tabs svg{width:22px;height:22px}
+nav.tabs .dot{position:absolute;top:7px;left:calc(50% + 8px);width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+/* hero */
+.hero{gap:10px}
+.gauge{display:flex;align-items:center;gap:14px}
+.score{font-family:var(--f-display);font-weight:700;font-size:58px;line-height:.9;font-variant-numeric:tabular-nums}
+.score small{font-size:20px;color:var(--muted);font-weight:600}
+.staff{position:relative;height:14px;flex:1;min-width:0;border-radius:3px;background:repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 10%),var(--water-soft)}
+.staff i{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--water);opacity:.85}
+.staff b{position:absolute;top:-5px;width:4px;height:24px;background:var(--accent);border-radius:2px;transform:translateX(-2px)}
+.where{font-size:16px;font-weight:600}
+.lvl{display:inline-flex;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px}
+.lvl.g{background:color-mix(in srgb,var(--good) 16%,transparent);color:var(--good)}
+.lvl.w{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.lvl.b{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.why{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:14px}
+.why li{display:flex;gap:8px}
+.why li::before{content:"";flex:0 0 6px;height:6px;margin-top:7px;border-radius:50%;background:var(--water)}
+.why.ic li::before{display:none}
+.panel>label.f,.sheet>label.f,form.panel>label.f{flex:0 0 auto}
+.item.wl{flex-wrap:wrap}.item.wl .main{flex:1 1 60%}.item.wl .acts{flex:1 1 100%;display:flex;justify-content:flex-end;gap:4px;margin-top:-4px}
+.why.ic li svg{flex:0 0 20px;width:20px;height:20px;color:var(--water);margin-top:0}
+.cond{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.ccard{background:var(--bg);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.ccard.wide{grid-column:1/-1;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px}
+.ccard h4{margin:0;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.ccard .big{font-family:var(--f-display);font-weight:700;font-size:40px;line-height:1;font-variant-numeric:tabular-nums}
+.ccard .big small{font-size:16px;color:var(--muted);font-weight:600}
+.ccard .kv{display:grid;grid-template-columns:auto auto;gap:4px 10px;font-size:13px;align-items:center}
+.ccard .kv span:nth-child(odd){color:var(--muted)}
+.ccard .kv b{font-variant-numeric:tabular-nums}
+.ccard .row2{display:flex;align-items:center;gap:10px}
+.wxi{width:72px;height:72px;flex:0 0 auto}
+.day .wxs{width:24px;height:24px}
+.mini-ic{display:inline-flex;align-items:center;gap:4px}
+.mini-ic svg{width:16px;height:16px;color:var(--muted)}
+@media (max-width:400px){.ccard.wide{grid-template-columns:auto 1fr}.ccard.wide .kv{grid-column:1/-1}}
+.more{display:flex;flex-direction:column;gap:6px}
+.al{width:100%;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:10px;background:var(--bg);font-size:14px}
+.al .s{font-family:var(--f-display);font-weight:700;font-size:22px}
+.al.hot .s{color:var(--accent)}
+
+/* days */
+.days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.day{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:7px 2px;display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--ink)}
+.day .wd{font-size:11px;color:var(--muted);font-weight:600}
+.day .sc{font-family:var(--f-display);font-weight:700;font-size:20px;line-height:1}
+.day .bar{width:6px;height:28px;border-radius:3px;background:var(--water-soft);position:relative;overflow:hidden}
+.day .bar i{position:absolute;left:0;right:0;bottom:0;background:var(--water)}
+.day[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.day[aria-pressed="true"] .bar i{background:var(--accent)}
+.hours{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));gap:2px;align-items:end;height:72px}
+.hours div{background:var(--water);border-radius:2px 2px 0 0;min-height:2px;opacity:.85}
+.hours div.top{background:var(--accent);opacity:1}
+.hours div.night{opacity:.35}
+.haxis{display:grid;grid-template-columns:repeat(24,minmax(0,1fr));font-size:10px;color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px}
+.fact{background:var(--bg);border-radius:10px;padding:8px 10px;min-width:0}
+.fact .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.fact .v{font-family:var(--f-display);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+
+/* live session */
+.go{font-size:18px;padding:14px;border-radius:12px;width:100%}
+.live-head{display:flex;align-items:center;gap:8px}
+.live-dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.timer{font-family:var(--f-display);font-weight:700;font-size:64px;line-height:.9;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.counters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.counter{background:var(--bg);border-radius:10px;padding:8px 10px;text-align:center}
+.counter .v{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1;font-variant-numeric:tabular-nums}
+.counter .k{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.actions button{padding:16px 10px;font-size:17px;border-radius:12px}
+.actions .bite{background:var(--water);border-color:var(--water);color:#fff}
+.sheet{border:2px solid var(--accent);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.preview{width:72px;height:72px;border-radius:10px;object-fit:cover;background:var(--water-soft)}
+.thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--water-soft);display:grid;place-items:center;color:var(--water);flex:0 0 auto}
+.thumb svg{width:22px;height:22px}
+
+/* lists */
+.list{display:flex;flex-direction:column}
+.item{display:flex;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.item:first-child{border-top:0}
+.item .main{flex:1;min-width:0}
+.item .main div:first-child{font-weight:600;overflow-wrap:anywhere}
+.item .main div+div{font-size:13px;color:var(--muted)}
+.chip{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 7px;border-radius:5px;background:var(--water-soft);color:var(--water);white-space:nowrap}
+.chip.out{background:var(--bg);color:var(--muted)}
+.chip.zero{background:var(--accent-soft);color:var(--accent)}
+.chip.pb{background:color-mix(in srgb,var(--gold) 18%,transparent);color:var(--gold)}
+.btnrow{display:flex;flex-direction:column;gap:8px}
+.grp{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
+.fishrow{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;background:var(--bg);border-radius:10px;padding:10px}
+.fishrow .f{flex:1 1 120px}
+.fishrow .f.len{flex:0 0 96px}
+.fileBtn{position:relative;display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:600;color:var(--water);cursor:pointer;padding:8px 0}
+.fileBtn svg{width:20px;height:20px}
+.fileBtn input{position:absolute;inset:0;width:100%;opacity:0;cursor:pointer;padding:0;border:0}
+.fileBtn:focus-within{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.stepper{display:flex;align-items:center;gap:10px}
+.stepper button{width:44px;height:44px;padding:0;font-size:22px;line-height:1}
+.stepper span{font-family:var(--f-display);font-weight:700;font-size:26px;min-width:2ch;text-align:center}
+.pb .tx .fileBtn{padding:4px 0;font-size:13px}
+.pb .len.nolen{font-size:15px;color:var(--muted);font-family:var(--f-body);font-weight:600}
+.chips button.edit{background:none;border-style:dashed;color:var(--water)}
+.picks{display:flex;flex-wrap:wrap;gap:6px}
+.picks button{border-radius:99px;padding:7px 12px;font-size:14px}
+.picks button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.picks button:disabled{opacity:.4;cursor:not-allowed}
+button.pb{padding:0;border:0;text-align:left;font:inherit;color:inherit;cursor:pointer;border-radius:12px}
+button.pb:hover .ph img{transform:scale(1.03)}
+.pb .ph{overflow:hidden}
+.pb .ph img{transition:transform .25s ease}
+.modal{position:fixed;inset:0;z-index:30;background:color-mix(in srgb,#000 55%,transparent);display:flex;align-items:flex-end;justify-content:center}
+.mcard{background:var(--surface);color:var(--ink);width:100%;max-width:600px;max-height:92%;overflow-y:auto;border-radius:18px 18px 0 0;padding:16px;padding-bottom:calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px}
+.mphoto{width:100%;max-width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:var(--water-soft);display:grid;place-items:center;color:var(--water)}
+.mphoto svg{width:56px;height:56px;opacity:.6}
+.mlen{font-family:var(--f-display);font-weight:700;font-size:52px;line-height:1;color:var(--gold)}
+.mlen small{font-size:20px;color:var(--muted)}
+.mlen.nolen{font-size:22px;color:var(--muted)}
+.fact .v.small{font-size:17px;line-height:1.2}
+.rule{border-radius:12px;padding:10px 12px;background:var(--water-soft);display:flex;flex-direction:column;gap:6px}
+.rule.closed{background:color-mix(in srgb,var(--bad) 12%,transparent);border:1px solid var(--bad)}
+.rule-h{margin:0;font-weight:700}
+.rule.closed .rule-h{color:var(--bad)}
+.rule .why{font-size:13px}
+.rule.mini{flex-direction:row;flex-wrap:wrap;gap:4px 16px;padding:8px 12px;font-size:14px}
+.rule.mini b{font-variant-numeric:tabular-nums}
+.rule.mini .now{flex-basis:100%;font-weight:700;color:var(--bad)}
+.vt{display:inline-flex;font-size:12px;font-weight:600;padding:3px 8px;border-radius:99px;background:var(--surface);color:var(--muted)}
+.vt.ok{color:var(--good);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.vt.no{color:var(--warn);background:color-mix(in srgb,var(--warn) 16%,transparent)}
+.vrow{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+details.learn summary{cursor:pointer;font-weight:700;list-style-position:inside}
+.hero .why-btn{align-self:flex-start}
+.warn{margin:0;font-size:14px;font-weight:600;color:var(--bad)}
+.chips button.closed::after{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bad);margin-left:6px;vertical-align:middle}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.sw{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;background:var(--bg);font-weight:600;font-size:14px}
+.sw i{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);flex:0 0 auto}
+.linkbtn{background:none;border:0;padding:0;font:inherit;color:var(--water);font-weight:700;text-decoration:underline;cursor:pointer}
+#wcPanel p{margin:0}
+.nays{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ncard{background:var(--bg);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:2px;font-size:12px;min-width:0}
+.ncard b{font-size:13px}.ncard span{color:var(--muted)}
+.shad{width:100%;height:auto}
+.wcphoto{width:100%;max-width:100%;max-height:200px;object-fit:cover;border-radius:12px}
+.picks button small{display:block;font-weight:400;font-size:11px;opacity:.8}
+.learn{background:var(--water-soft);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px}
+.learn p{margin:0}
+.pers{font-size:13px;color:var(--muted);margin:0}
+.pegel{background:var(--bg);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.pegel p{margin:0}
+.chk{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:600}
+.chk input{width:22px;height:22px;accent-color:var(--accent)}
+.sp-pick{width:100%;text-align:left;background:var(--bg);font-weight:500;font-size:16px;display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:42px}
+.sp-pick::after{content:"";flex:0 0 auto;width:7px;height:7px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg) translateY(-2px)}
+.splist{display:flex;flex-direction:column}
+.splist h3{margin:14px 0 4px}
+.sp-row{border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;text-align:left;padding:12px 4px;font-weight:500;color:var(--ink)}
+.sp-row.on{color:var(--water);font-weight:700}
+.sp-row small{color:var(--muted);font-weight:400}
+.celeb{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:color-mix(in srgb,#000 50%,transparent);padding:16px}
+[hidden]{display:none!important}
+.cel-card{background:var(--surface);color:var(--ink);border-radius:22px;padding:26px 24px 20px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px;width:100%;max-width:340px;cursor:pointer}
+.cel-k{margin:0;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cel-big{font-family:var(--f-display);font-weight:800;font-size:56px;line-height:1;color:var(--gold)}
+.cel-t{margin:0;font-weight:600}
+.troph{width:110px;height:110px}
+.troph .g{fill:var(--gold)}.troph .gs{stroke:var(--gold)}.troph .r{stroke:var(--accent)}
+.tape{width:100%;height:30px;border-radius:4px;background:#F2C94C;position:relative;overflow:hidden;margin-top:6px}
+.tape .ticks{position:absolute;inset:0;background:repeating-linear-gradient(90deg,#3B2F12 0 1px,transparent 1px 5%),repeating-linear-gradient(90deg,#3B2F12 0 2px,transparent 2px 25%);background-size:100% 40%,100% 70%;background-repeat:no-repeat}
+.tape .fill{position:absolute;left:0;top:0;bottom:0;background:color-mix(in srgb,var(--accent) 35%,transparent)}
+.tape .mark{position:absolute;top:0;bottom:0;width:3px;background:var(--accent-btn)}
+.rankbadge{width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);font-family:var(--f-display);font-weight:800;font-size:44px;box-shadow:0 0 0 6px color-mix(in srgb,var(--gold) 60%,transparent)}
+@media (prefers-reduced-motion:no-preference){.cel-card{animation:pop .55s cubic-bezier(.2,1.5,.4,1)}.troph .rays{transform-origin:55px 50px;animation:spin 6s linear infinite}.tape .fill,.tape .mark{animation:grow 1.1s ease-out}.rankbadge{animation:pop .7s cubic-bezier(.2,1.6,.4,1)}}
+@media (prefers-reduced-motion:reduce){.cel-card{animation:fade .4s ease}}
+@keyframes pop{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes grow{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+.lurebox{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px}
+.lure-tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 6px;border-radius:12px;background:var(--bg);border:1px solid var(--line);text-align:center;font-weight:600;font-size:13px;color:var(--ink);position:relative;min-width:0}
+.lure-tile small{font-weight:400;color:var(--muted);font-size:11px}
+.lure-tile .fav{position:absolute;top:6px;right:6px;width:14px;height:14px;color:var(--gold)}
+.lure-img{width:72px;height:72px;border-radius:10px;object-fit:contain;background:radial-gradient(circle at 50% 40%,var(--surface),var(--water-soft));display:grid;place-items:center;color:var(--water)}
+.lure-img svg{width:30px;height:30px}
+.lure-strip{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px}
+.lure-chip{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:3px;width:84px;padding:6px;border-radius:12px;background:var(--surface);font-size:11px;font-weight:600;line-height:1.2}
+.lure-chip .lure-img{width:54px;height:54px}
+.lure-chip[aria-pressed="true"]{border:2px solid var(--accent);background:var(--accent-soft)}
+.lure-chip.add{justify-content:center;color:var(--water);border-style:dashed}
+.lure-prev{width:160px;height:160px;border-radius:16px;object-fit:contain;background:repeating-conic-gradient(var(--water-soft) 0 25%,var(--surface) 0 50%) 50%/20px 20px}
+.flabel{font-size:12px;color:var(--muted);font-weight:600}
+.fb{display:flex;flex-direction:column;gap:8px;background:var(--water-soft);border-radius:12px;padding:12px}
+.fb p{margin:0}
+.toast{font-size:14px;font-weight:600;color:var(--good);margin:0}
+.toast:empty{display:none}
+
+/* Erfolge */
+.rank{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.rank .badge-big{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--bg);font-family:var(--f-display);font-weight:700;font-size:28px}
+.rank .name{font-family:var(--f-display);font-weight:700;font-size:26px;line-height:1}
+.xp{height:10px;background:var(--bg);border-radius:5px;overflow:hidden;margin-top:6px}
+.xp i{display:block;height:100%;background:var(--accent)}
+.pbs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+.pb{border-radius:12px;background:var(--bg);overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.pb .ph{aspect-ratio:4/3;max-width:100%;background:var(--water-soft);display:grid;place-items:center;color:var(--water)}
+.pb .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.pb .ph svg{width:40px;height:40px;opacity:.6}
+.pb .tx{padding:8px 10px;display:flex;flex-direction:column;gap:1px}
+.pb .sp{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.pb .len{font-family:var(--f-display);font-weight:700;font-size:30px;line-height:1;color:var(--gold)}
+.pb .len small{font-size:15px;color:var(--muted)}
+.pb .meta{font-size:12px;color:var(--muted);overflow-wrap:anywhere}
+.pb.none .len{color:var(--muted);font-size:16px;font-family:var(--f-body);font-weight:600}
+.badges{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.bd{display:flex;flex-direction:column;align-items:center;text-align:center;gap:5px;padding:10px 6px;border-radius:12px;background:var(--bg);min-width:0}
+.bd .ic{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--line);color:var(--muted)}
+.bd .ic svg{width:22px;height:22px}
+.bd.on .ic{border-color:var(--gold);color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,transparent)}
+.bd .n{font-size:13px;font-weight:700;line-height:1.2}
+.bd .d{font-size:11px;color:var(--muted);line-height:1.25}
+.bd:not(.on) .n{color:var(--muted)}
+.bd .pr{font-size:11px;font-family:var(--f-mono);color:var(--muted)}
+.myth{display:flex;flex-direction:column;gap:6px}
+.mb{display:grid;grid-template-columns:96px 1fr 64px;gap:8px;align-items:center;font-size:13px}
+.mb .track{height:12px;background:var(--bg);border-radius:3px;overflow:hidden}
+.mb .track i{display:block;height:100%;background:var(--water)}
+.mb .track i.max{background:var(--accent)}
+.mb .val{text-align:right;color:var(--muted)}
+.verdict{font-size:14px;font-weight:600;margin:0}
+.lock{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px dashed var(--line);border-radius:12px}
+@media (max-width:400px){.score{font-size:48px}.timer{font-size:54px}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (prefers-reduced-motion:no-preference){.staff i,.day .bar i,.hours div,.mb .track i,.xp i{transition:all .35s ease}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1 class="logo" aria-label="Bissfibel"><span aria-hidden="true">B</span><svg class="bone-i" viewBox="0 0 28 100" aria-hidden="true"><path class="fb-h" d="M4 26C4 12 9 3 14 0c5 3 10 12 10 26z"/><circle class="fb-e" cx="14" cy="15" r="3"/><path class="fb-l" d="M14 26v60M14 36l-10 8M14 36l10 8M14 50l-10 8M14 50l10 8M14 64l-8 7M14 64l8 7M14 86l-9 12M14 86l9 12" fill="none" stroke-width="6" stroke-linecap="round"/></svg><span aria-hidden="true">SSF</span><svg class="tape-i" viewBox="0 0 28 100" aria-hidden="true"><rect class="tp-b" x="3" y="0" width="22" height="92" rx="2"/><rect class="tp-t" x="3" y="4" width="11" height="2"/><rect class="tp-t" x="3" y="9" width="6" height="2"/><rect class="tp-t" x="3" y="14" width="6" height="2"/><rect class="tp-t" x="3" y="19" width="6" height="2"/><rect class="tp-t" x="3" y="24" width="11" height="2"/><rect class="tp-t" x="3" y="29" width="6" height="2"/><rect class="tp-t" x="3" y="34" width="6" height="2"/><rect class="tp-t" x="3" y="39" width="6" height="2"/><rect class="tp-t" x="3" y="44" width="11" height="2"/><rect class="tp-t" x="3" y="49" width="6" height="2"/><rect class="tp-t" x="3" y="54" width="6" height="2"/><rect class="tp-t" x="3" y="59" width="6" height="2"/><rect class="tp-t" x="3" y="64" width="11" height="2"/><rect class="tp-t" x="3" y="69" width="6" height="2"/><rect class="tp-t" x="3" y="74" width="6" height="2"/><rect class="tp-t" x="3" y="79" width="6" height="2"/><rect class="tp-t" x="3" y="84" width="11" height="2"/><rect class="tp-t" x="3" y="89" width="6" height="2"/><rect class="tp-c" x="1" y="90" width="26" height="10" rx="2"/><rect class="tp-m" x="0" y="38" width="28" height="5"/></svg><span aria-hidden="true" class="nd">BEL</span></h1>
+    <span class="demo-pill" title="Die Wetterwerte sind erfunden. Mond und Sonne sind echt berechnet.">Beispielwetter</span>
+  </header>
+
+  <!-- HEUTE -->
+  <section id="t-heute" class="tab">
+    <div class="panel" id="favPanel" hidden></div>
+    <div class="chips" id="chips" role="group" aria-label="Fischart"></div>
+    <div class="panel hero" id="hero"></div>
+    <div class="panel">
+      <h2>Gewässer im Detail</h2>
+      <select id="waterSel" aria-label="Gewässer"></select>
+      <div class="days" id="days"></div>
+      <div id="dayDetail" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+    <div class="panel" id="morePanel" hidden></div>
+  </section>
+
+  <!-- GEWÄSSER -->
+  <section id="t-gewaesser" class="tab" hidden>
+    <form class="panel" id="searchForm">
+      <h2>Gewässer in Sachsen suchen</h2>
+      <label class="f" for="home">Stadt oder Ort in Sachsen<input id="home" type="text" list="saxCities" autocomplete="off" required></label>
+      <datalist id="saxCities"><option value="Dresden"><option value="Leipzig"><option value="Chemnitz"><option value="Zwickau"><option value="Plauen"><option value="Görlitz"><option value="Bautzen"><option value="Freiberg"><option value="Pirna"><option value="Meißen"><option value="Riesa"><option value="Freital"><option value="Radebeul"><option value="Hoyerswerda"><option value="Grimma"><option value="Döbeln"><option value="Torgau"><option value="Delitzsch"><option value="Zittau"><option value="Kamenz"><option value="Annaberg-Buchholz"><option value="Aue-Bad Schlema"><option value="Glauchau"><option value="Mittweida"><option value="Borna"><option value="Oschatz"><option value="Markkleeberg"><option value="Coswig"><option value="Reichenbach im Vogtland"><option value="Weißwasser"></datalist>
+      <label class="f" for="radius">Umkreis: <span class="mono" id="radiusVal"></span>
+        <input type="range" id="radius" min="5" max="100" step="5">
+      </label>
+      <button class="primary go" type="submit" id="searchBtn">Gewässer suchen</button>
+    </form>
+    <div class="panel" id="resultPanel" hidden></div>
+    <div class="panel">
+      <div class="row between"><h2>Deine Gewässer</h2><span class="hint" id="wCount"></span></div>
+      <p class="toast" id="wMsg" role="status"></p>
+      <div class="list" id="waterList"></div>
+      <details>
+        <summary>Gewässer nicht gefunden? Selbst anlegen</summary>
+        <form class="inner" id="waterForm">
+          <div class="row">
+            <label class="f" for="wName">Name<input id="wName" required placeholder="z. B. Kiesgrube Nord"></label>
+            <label class="f" for="wType">Typ<select id="wType"></select></label>
+          </div>
+          <div class="row">
+            <label class="f" for="wDist">Entfernung (km)<input id="wDist" type="number" min="0" max="500" step="1" required></label>
+            <label class="f" for="wNr">Gewässernummer<input id="wNr" placeholder="optional"></label>
+          </div>
+          <div class="row"><button class="primary" type="submit">Speichern</button></div>
+        </form>
+      </details>
+      <p class="hint">Ob du dort angeln darfst, steht im <a href="https://angelatlas-sachsen.de" target="_blank" rel="noopener">Angelatlas Sachsen</a>.</p>
+    </div>
+    <div class="panel" id="wcPanel"></div>
+  </section>
+
+  <!-- FANGBUCH -->
+  <section id="t-fangbuch" class="tab" hidden>
+    <div class="panel" id="livePanel"></div>
+    <p class="toast" id="cMsg" role="status"></p>
+    <div class="panel">
+      <div class="row between"><h2>Fangbuch</h2><span class="hint" id="eCount"></span></div>
+      <div class="list" id="entryList"></div>
+      <p class="hint">Fotos und Einträge bleiben nur in diesem Browser auf diesem Gerät.</p>
+    </div>
+    <div class="panel" id="lurePanel"></div>
+  </section>
+
+  <!-- ERFOLGE -->
+  <section id="t-erfolge" class="tab" hidden>
+    <div class="row between">
+      <span class="hint" id="demoLbl"></span>
+      <button type="button" id="demoBtn">Mit Beispieldaten ansehen</button>
+    </div>
+    <div class="panel" id="rankBox"></div>
+    <div class="panel"><div class="row between"><h2>Deine PBs</h2><span class="hint">Tippe für Details</span></div><div class="pbs" id="pbs"></div></div>
+    <div class="panel"><h2>Abzeichen</h2><div class="badges" id="badges"></div></div>
+    <div class="panel"><h2>Was bei dir fängt</h2><p class="hint">Köderfarbe und Köder je Wassertrübung</p><div class="list" id="baitOut"></div></div>
+    <div class="panel"><h2>Mythen-Check</h2><div id="mythOut" style="display:flex;flex-direction:column;gap:14px"></div></div>
+  </section>
+</div>
+
+<div class="modal" id="modal" hidden role="dialog" aria-modal="true" aria-labelledby="mTitle"><div class="mcard" id="mcard"></div></div>
+<div class="celeb" id="celeb" hidden role="status" aria-live="polite"></div>
+<nav class="tabs" aria-label="Bereiche">
+  <button type="button" class="livebar" id="livebar" hidden><span class="pulse"></span><span id="livebarTxt"></span></button>
+  <div class="in" role="tablist">
+  <button role="tab" data-tab="heute" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18h16M7 18V9m5 9V5m5 13v-6"/></svg>Heute</button>
+  <button role="tab" data-tab="gewaesser" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 9c3-2 5 2 9 0s6 2 9 0M3 15c3-2 5 2 9 0s6 2 9 0"/></svg>Gewässer</button>
+  <button role="tab" data-tab="fangbuch" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5zM9 9h6M9 13h6M9 17h3"/></svg>Angeln</button>
+  <button role="tab" data-tab="erfolge" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="5"/><path d="M9 13.5L7.5 21l4.5-2.5 4.5 2.5-1.5-7.5"/></svg>Erfolge<span class="dot" id="newDot" hidden></span></button>
+  </div>
+</nav>
+
+<script>
+(function(){
+"use strict";
+const $=s=>document.querySelector(s);
+const el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!=null)e.textContent=txt;return e};
+const fmt1=n=>n.toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const LAT=51.05,LON=13.74,TZ="Europe/Berlin";
+
+/* ---------- Stammdaten ---------- */
+/* Profile: t=[min,optVon,optBis,max] Wassertemperatur °C · l=[Dämmerung,Tag,Nacht] · c=[von,bis] ideale Bewölkung % · w=[von,bis] idealer Wind km/h · p="front" (mag fallenden Druck) oder "stabil" */
+const GROUPS=[["raub","Raubfische"],["salmo","Forellen und Salmoniden"],["fried","Friedfische"]];
+const SPECIES={
+  hecht:      {name:"Hecht",g:"raub",t:[3,8,17,24],l:[1,.75,.1],c:[30,80],w:[8,22],p:"front",tip:"Leicht bewölkt mit Sonnenlücken und Wind, der die Oberfläche kräuselt. Vor Gewittern oft aktiv, bei Sonne und Spiegelglätte zäh."},
+  zander:     {name:"Zander",g:"raub",t:[6,12,22,28],l:[1,.35,.85],c:[60,100],w:[10,28],p:"front",tip:"Dämmerung, Nacht und trübes Licht. Wind mit Wellen und eingetrübtes Wasser helfen: Zander sehen bei wenig Licht besser als ihre Beute."},
+  barsch:     {name:"Barsch",g:"raub",t:[5,12,22,27],l:[.85,.9,.05],c:[0,70],w:[3,18],p:"front",tip:"Tagaktiver Augenjäger. Sonne stört kaum, leichter Wind reicht. Nachts fast keine Aktivität."},
+  wels:       {name:"Wels",g:"raub",t:[12,20,28,32],l:[.7,.25,1],c:[50,100],w:[5,25],p:"front",tip:"Nachts und bei warmem Wasser. Schwüles Wetter vor Gewittern gilt als beste Zeit."},
+  aal:        {name:"Aal",g:"raub",t:[10,16,25,30],l:[.6,.1,1],c:[60,100],w:[0,15],p:"front",tip:"Dunkle, warme Nächte, gern nach Regen bei steigendem und leicht trübem Wasser."},
+  rapfen:     {name:"Rapfen",g:"raub",t:[6,12,22,27],l:[1,.8,.05],c:[0,60],w:[0,15],p:"front",tip:"Jagt an der Oberfläche, vor allem morgens und abends. Ruhiges, klares Wetter macht die Jagd sichtbar."},
+  quappe:     {name:"Quappe",g:"raub",t:[0,2,10,16],l:[.6,.1,1],c:[50,100],w:[0,20],p:"front",tip:"Kältefreund: am aktivsten in langen Winternächten bei sehr kaltem Wasser."},
+  kaulbarsch: {name:"Kaulbarsch",g:"raub",t:[4,10,20,25],l:[.9,.7,.4],c:[40,100],w:[3,18],p:"stabil",tip:"Bodennah im Schwarm, gern bei trübem Licht."},
+  schwarzbarsch:{name:"Schwarzbarsch",g:"raub",t:[12,18,26,30],l:[1,.6,.2],c:[30,90],w:[3,15],p:"front",tip:"Warmes Wasser, Dämmerung, gern bewölkt. Steht an Kraut und Holz."},
+  forelle:    {name:"Bachforelle",g:"salmo",t:[3,8,15,19],l:[1,.6,.35],c:[50,100],w:[3,18],p:"front",tip:"Bedeckter Himmel und leichter Nieselregen bringen Insekten und machen sie mutiger. Grelle Sonne macht sie scheu."},
+  regenbogen: {name:"Regenbogenforelle",g:"salmo",t:[4,10,17,21],l:[.9,.75,.2],c:[40,100],w:[5,20],p:"front",tip:"Weniger scheu als die Bachforelle und auch tagsüber gut zu fangen."},
+  seeforelle: {name:"Seeforelle",g:"salmo",t:[3,6,13,17],l:[1,.55,.2],c:[50,100],w:[10,28],p:"front",tip:"Kaltes Wasser, Wind auf der Oberfläche, trübes Licht."},
+  saibling:   {name:"Bachsaibling",g:"salmo",t:[2,7,14,18],l:[.9,.6,.2],c:[40,100],w:[3,18],p:"front",tip:"Kaltes, sauerstoffreiches Wasser, bewölkte Tage."},
+  aesche:     {name:"Äsche",g:"salmo",t:[3,8,15,19],l:[.8,.9,.05],c:[20,80],w:[0,12],p:"stabil",tip:"Tagaktiv, steigt beim Insektenschlupf. Ruhiges Wetter mit wenig Wind ist ideal."},
+  huchen:     {name:"Huchen",g:"salmo",t:[1,5,12,16],l:[1,.5,.3],c:[50,100],w:[0,20],p:"front",tip:"Winterfisch: kaltes Wasser, trübes Licht, oft bei Wetterumschwung."},
+  maraene:    {name:"Maräne",g:"salmo",t:[2,6,12,16],l:[.9,.6,.4],c:[30,90],w:[3,18],p:"stabil",tip:"Kaltes, tiefes Freiwasser, am besten in der Dämmerung."},
+  karpfen:    {name:"Karpfen",g:"fried",t:[10,18,26,30],l:[.9,.55,.85],c:[20,80],w:[8,25],p:"stabil",tip:"Warmes, stabiles Wetter. Warmer Wind aufs Ufer treibt Nahrung dorthin, die Karpfen folgen."},
+  schleie:    {name:"Schleie",g:"fried",t:[10,18,25,29],l:[1,.4,.6],c:[50,100],w:[0,8],p:"stabil",tip:"Warme, windstille Morgen am Krautrand. Bläschenteppiche verraten sie."},
+  brasse:     {name:"Brasse",g:"fried",t:[8,15,24,28],l:[.9,.55,.8],c:[40,100],w:[5,20],p:"stabil",tip:"Schwarmfisch, gern bei bedecktem Himmel und leichtem Wind, abends und nachts."},
+  guester:    {name:"Güster",g:"fried",t:[8,15,24,28],l:[.9,.6,.6],c:[30,90],w:[3,15],p:"stabil",tip:"Ähnlich wie die Brasse, etwas tagaktiver."},
+  rotauge:    {name:"Rotauge",g:"fried",t:[5,12,22,27],l:[.9,.8,.3],c:[20,90],w:[3,15],p:"stabil",tip:"Fast immer zu fangen. Stabiles Wetter und leichter Wind sind ideal."},
+  rotfeder:   {name:"Rotfeder",g:"fried",t:[10,17,25,29],l:[.8,.9,.2],c:[0,60],w:[0,8],p:"stabil",tip:"Sonnige, warme, ruhige Tage dicht unter der Oberfläche."},
+  aland:      {name:"Aland",g:"fried",t:[4,10,20,25],l:[.9,.8,.3],c:[20,80],w:[3,15],p:"stabil",tip:"Fließgewässer, oft nah an der Oberfläche. Mildes, stabiles Wetter."},
+  doebel:     {name:"Döbel",g:"fried",t:[5,12,22,27],l:[.9,.85,.4],c:[10,80],w:[0,15],p:"stabil",tip:"Vorsichtiger Allesfresser an Strömungskanten. Beißt fast das ganze Jahr."},
+  barbe:      {name:"Barbe",g:"fried",t:[8,14,22,26],l:[1,.5,.85],c:[40,100],w:[0,15],p:"stabil",tip:"Bodenfisch in der Strömung. Dämmerung, Nacht und leicht trübes Wasser."},
+  nase:       {name:"Nase",g:"fried",t:[6,12,20,24],l:[.7,.9,.1],c:[0,70],w:[0,15],p:"stabil",tip:"Tagaktiv, weidet Algen von Steinen. Klares, ruhiges Wetter."},
+  karausche:  {name:"Karausche",g:"fried",t:[10,18,26,30],l:[.9,.6,.5],c:[20,80],w:[0,8],p:"stabil",tip:"Warme, stille Kleingewässer, ruhiges Wetter."},
+  giebel:     {name:"Giebel",g:"fried",t:[10,17,26,30],l:[.9,.7,.4],c:[20,80],w:[0,12],p:"stabil",tip:"Robust und wärmeliebend, ruhiges Wetter."},
+  graskarpfen:{name:"Graskarpfen",g:"fried",t:[14,20,28,32],l:[.8,.8,.5],c:[0,60],w:[0,12],p:"stabil",tip:"Sehr warmes Wasser und sonnige Tage. Frisst Pflanzen nahe der Oberfläche."},
+  hasel:      {name:"Hasel",g:"fried",t:[5,11,20,25],l:[.8,.9,.1],c:[10,80],w:[0,12],p:"stabil",tip:"Kleiner, tagaktiver Strömungsfisch."},
+  ukelei:     {name:"Ukelei",g:"fried",t:[10,16,24,28],l:[.8,.95,.05],c:[0,60],w:[0,10],p:"stabil",tip:"Oberflächenschwarm an sonnigen, ruhigen Tagen."}};
+const FISHLIST={s:"Aal|Aland|Afrikanischer Raubwels|Amur-Schläfergrundel|Arapaima|Bachforelle|Bachneunauge|Bachsaibling|Bachschmerle|Barbe|Bitterling|Blaubandbärbling|Brachse|Donau-Neunauge|Donaukaulbarsch|Dreistachliger Stichling|Döbel|Elritze|Elsässer Saibling|Flussbarsch|Flussgrundel|Flussneunauge|Forellenbarsch|Frauennerfling|Giebel|Goldfisch|Goldforelle|Goldorfe|Graskarpfen|Groppe (Koppe)|Gründling|Güster|Hasel|Hecht|Huchen|Karausche|Karpfen|Kaulbarsch|Kessler-Grundel|Kilch|Lachs|Maifisch|Mairenke|Marmorataforelle|Marmorierte Grundel|Marmorkarpfen|Meerforelle|Moderlieschen|Nase|Neunstachliger Stichling|Nordseeschnäpel|Ostseeschnäpel|Perlfisch|Quappe|Rapfen|Regenbogenforelle|Renke|Rotauge|Rotfeder|Schlammpeitzger|Schleie|Schneider|Schrätzer|Schwarzbarsch|Schwarzer Amur|Schwarzmund-Grundel|Seeforelle|Seesaibling|Sonnenbarsch|Steinbeißer|Sterlet|Stint|Stör|Strömer|Tigerforelle|Ukelei|Wels|Wolgazander|Zander|Ziege|Zingel|Zobel|Zope|Zwergwels|Zährte|Äsche",m:"Aalmutter|Amberjack|Barrakuda|Barramundi|Blauleng|Bonito|Butterfisch|Dorade|Dornhai|Dorsch|Drachenkopf|Finte|Fleckhai|Flunder|Glattbutt|Glatthai|Goldmakrele|Heilbutt|Hering|Hornhecht|Hundshai|Katzenhai|Kliesche|Klippenbarsch|Knurrhahn (Grauer)|Knurrhahn (Roter)|Köhler|Leng|Lippfisch|Lumb|Makrele|Marlin|Meeraal|Meerneunauge|Meeräsche|Muräne|Nagelrochen|Petermännchen|Pollack|Rotbarbe|Rotbarsch|Sandaal|Sardine|Scheibenbauch|Schellfisch|Scholle|Schriftbarsch|Seehase|Seehecht|Seequappe (dreibärtelig)|Seequappe (vierbärtelig)|Seerüßling|Seeskorpion|Seeteufel|Sprotte|Steinbutt|Streifenbarbe|Streifenbarsch|Tarpun|Thunfisch|Tobiasfisch|Wittling|Wolfsbarsch",k:"Dohlenkrebs|Edelkrebs|Galizischer Sumpfkrebs|Hummer|Kamberkrebs|Roter amerikanischer Sumpfkrebs|Steinkrebs|Strandkrabbe|Taschenkrebs|Wollhandkrabbe|Sonstiges"};
+const PROF_MAP={"Aal":"aal","Aland":"aland","Bachforelle":"forelle","Bachsaibling":"saibling","Barbe":"barbe","Brachse":"brasse","Döbel":"doebel","Flussbarsch":"barsch","Giebel":"giebel","Graskarpfen":"graskarpfen","Güster":"guester","Hasel":"hasel","Hecht":"hecht","Huchen":"huchen","Karausche":"karausche","Karpfen":"karpfen","Kaulbarsch":"kaulbarsch","Nase":"nase","Quappe":"quappe","Rapfen":"rapfen","Regenbogenforelle":"regenbogen","Renke":"maraene","Rotauge":"rotauge","Rotfeder":"rotfeder","Schleie":"schleie","Schwarzbarsch":"schwarzbarsch","Seeforelle":"seeforelle","Ukelei":"ukelei","Wels":"wels","Zander":"zander","Äsche":"aesche"};
+const slug=n=>n.toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+Object.entries(FISHLIST).forEach(([wg,str])=>str.split("|").forEach(n=>{const k=PROF_MAP[n]||slug(n);if(SPECIES[k]){SPECIES[k].wg=wg;if(n!==SPECIES[k].name)SPECIES[k].alias=n}else SPECIES[k]={name:n,wg}}));
+const hasProfile=k=>!!(SPECIES[k]&&SPECIES[k].t);
+const spName=k=>(SPECIES[k]||{name:k}).name;
+const cap=t=>t.charAt(0).toUpperCase()+t.slice(1);
+/* Schonzeiten und Mindestmaße nach Sächsischer Fischereiverordnung vom 22.04.2022 (gültig ab 1.6.2022) */
+const REG={aal:{mm:50},aland:{mm:20},aesche:{sz:[[1,1],[6,15]],mm:35},forelle:{sz:[[10,1],[4,30]],mm:28},saibling:{sz:[[10,1],[4,30]],mm:25},
+  barbe:{sz:[[4,15],[6,30]],mm:50},maraene:{sz:[[10,1],[12,31]],mm:30,note:"Gilt für die Große Maräne."},hecht:{sz:[[2,1],[4,30]],mm:50},
+  karausche:{sz:[[2,1],[6,30]],mm:15},karpfen:{mm:40},seeforelle:{sz:[[10,1],[4,30]],mm:60},rapfen:{sz:[[1,1],[5,31]],mm:40},zander:{sz:[[2,1],[5,31]],mm:50},schleie:{mm:25},
+  regenbogen:{sz:[[10,1],[4,30]],mm:25,flow:true,note:"Die Schonzeit gilt nur in Fließgewässern."},rotfeder:{mm:20,flow:true,note:"Das Mindestmaß gilt nur in Fließgewässern."},
+  nase:{year:true,special:["elbe"],alt:{sz:[[1,1],[6,15]],mm:40},note:"In der Elbe: Schonzeit 1. Jan. – 15. Juni, Mindestmaß 40 cm. Sonst ganzjährig geschont."},
+  quappe:{year:true,special:["elbe","mulde","weiße elster","weisse elster"],alt:{sz:[[1,1],[3,31]],mm:30},note:"In Elbe, Vereinigter Mulde und Weißer Elster: Schonzeit 1. Jan. – 31. März, Mindestmaß 30 cm. Sonst ganzjährig geschont."}};
+["bitterling","elritze","finte","groppe-koppe","maifisch","bachneunauge","flussneunauge","donau-neunauge","meerneunauge","neunstachliger-stichling","nordseeschnaepel","schlammpeitzger","bachschmerle","schneider","steinbeisser","stoer","zaehrte","zope","edelkrebs","steinkrebs"].forEach(k=>REG[k]={year:true});
+REG.lachs={sz:[[10,1],[4,30]],mm:60};REG.meerforelle={sz:[[10,1],[4,30]],mm:60};REG.seesaibling={sz:[[10,1],[4,30]],mm:28};
+const MON=["Jan.","Feb.","März","Apr.","Mai","Juni","Juli","Aug.","Sep.","Okt.","Nov.","Dez."];
+const dTxt=([m,d])=>d+". "+MON[m-1];
+function inPeriod(date,[[m1,d1],[m2,d2]]){const v=(date.getMonth()+1)*100+date.getDate(),a=m1*100+d1,b=m2*100+d2;return a<=b?(v>=a&&v<=b):(v>=a||v<=b)}
+const isFlow=w=>!!w&&(w.type==="fluss"||w.type==="bach"||w.type==="kanal");
+function ruleFor(sp,w,date){date=date||new Date();const r=REG[sp],out={closed:false,mm:null,lines:[],until:""};
+  if(!r){out.lines.push("Keine Schonzeit und kein Mindestmaß in der Sächsischen Fischereiverordnung.");return out}
+  let sz=r.sz,mm=r.mm;const nm=((w&&w.name)||"").toLowerCase();
+  if(r.year){if((r.special||[]).some(x=>nm.includes(x))){sz=r.alt.sz;mm=r.alt.mm}else{out.closed=true;out.year=true;out.lines.push(spName(sp)+" ist an diesem Gewässer ganzjährig geschont.",r.note);return out}}
+  const flowOk=!r.flow||isFlow(w);
+  if(sz&&flowOk){out.closed=inPeriod(date,sz);out.lines.push("Schonzeit: "+dTxt(sz[0])+" – "+dTxt(sz[1]));if(out.closed)out.until=dTxt(sz[1])}
+  if(mm&&(sp!=="rotfeder"||flowOk)){out.mm=mm;out.lines.push("Mindestmaß: "+mm+" cm")}
+  if(r.note&&!r.year)out.lines.push(r.note);return out}
+const predatorBan=d=>inPeriod(d||new Date(),[[2,1],[4,30]]);
+const isPred=sp=>!!SPECIES[sp]&&(SPECIES[sp].g==="raub"||SPECIES[sp].g==="salmo");
+function ruleBox(sp,w,full){const R=ruleFor(sp,w),box=el("div","rule"+(R.closed?" closed":""));
+  box.append(el("p","rule-h",R.closed?(R.year?spName(sp)+" ist ganzjährig geschont.":spName(sp)+" hat Schonzeit bis "+R.until+(R.until.endsWith(".")?"":".")):R.mm?"Mindestmaß "+spName(sp)+": "+R.mm+" cm":spName(sp)+": keine Schonzeit, kein Mindestmaß"));
+  const ul=el("ul","why");R.lines.filter(l=>l&&!(!R.closed&&R.mm&&l.startsWith("Mindestmaß"))&&!(l.startsWith("Keine Schonzeit"))).forEach(l=>ul.append(el("li",null,l)));
+  if(R.closed&&!R.year)ul.append(el("li",null,"Gefangene "+spName(sp)+" sofort schonend zurücksetzen."));
+  if(isPred(sp)&&predatorBan())ul.append(el("li",null,"1. Feb. – 30. Apr.: Angeln mit Raubfischködern ist in Sachsen verboten."));
+  if(full){ul.append(el("li",null,"Höchstens 2 Handangeln, beim Spinn- oder Fliegenfischen nur 1. Angeln ständig beaufsichtigen."));ul.append(el("li",null,"Köderfische vorher waidgerecht töten, lebende Köderfische sind verboten."))}
+  if(ul.children.length)box.append(ul);
+  box.append(el("p","hint","Nach Sächsischer Fischereiverordnung (2022). Die Gewässerordnung deines Vereins oder Pächters kann strenger sein."));
+  return {box,R}}
+function ruleLine(sp,w){const R=ruleFor(sp,w),box=el("div","rule mini"+(R.closed?" closed":""));
+  const sz=R.lines.find(l=>/^Schonzeit:/.test(l)),a=el("span"),b=el("span");
+  a.append(document.createTextNode("Mindestmaß "),el("b",null,R.mm?R.mm+" cm":"keins"));
+  b.append(document.createTextNode("Schonzeit "),el("b",null,R.year?"ganzjährig":sz?sz.replace(/^Schonzeit:\s*/,""):"keine"));
+  box.append(a,b);if(R.closed)box.append(el("span","now",R.year?"geschont – zurücksetzen":"jetzt geschont – zurücksetzen"));
+  return {box,R}}
+/* Wassertrübung und Köderfarben (Faustregeln aus der Angelpraxis) */
+const TURB={klar:{n:"Klar",d:"Sicht über 1 m"},leicht:{n:"Leicht trüb",d:"Sicht 30 cm – 1 m"},trueb:{n:"Stark trüb",d:"Sicht unter 30 cm"},braun:{n:"Moorwasser",d:"tee- bis braunfarben"}};
+const LURE={rotpink:["Rot/Pink","#e0457b"],natur:["Barsch-Dekor","#6f8a3c"],weissfisch:["Weißfisch/Silber","#c9cfd4"],motoroil:["Motoroil/Braun","#6b4a2b"],ghost:["Transparent","#e3ece8"],weiss:["Weiß/Perlmutt","#f5f3ed"],
+  chartreuse:["Chartreuse","#c6e81c"],firetiger:["Firetiger","#e8a41e"],orange:["Gelb/Orange","#f29b1c"],gold:["Gold/Kupfer","#c8962e"],schwarz:["Schwarz/Dunkel","#1d2224"],uv:["UV/Glow","#9b6cff"]};
+function lureAdvice(turb,light){const A={klar:[["natur","weissfisch","ghost"],"Klares Wasser: Fische sehen gut. Natürliche, dezente Farben wirken echter."],
+    leicht:[["weiss","chartreuse","firetiger"],"Leicht trüb: helle Farben mit etwas Kontrast bleiben gut sichtbar."],
+    trueb:[["chartreuse","orange","firetiger"],"Stark trüb: grelle Farben mit starkem Kontrast. Druckwelle und Rassel zählen jetzt mehr als die Farbe."],
+    braun:[["gold","orange","chartreuse"],"Moorwasser: Gold, Kupfer und Orange leuchten darin am besten."]}[turb];
+  let cols=A[0].slice();const tips=[];
+  if(light==="night"||light==="dawn"){cols=["schwarz",cols[0],"uv"];tips.push("Bei wenig Licht wirkt eine dunkle Silhouette gegen den helleren Himmel oft besser als Farbe.")}
+  tips.push("Rot verschwindet ab etwa 3 m Tiefe, Grün, Gelb und Weiß bleiben länger sichtbar.","Kontrast zum Grund: dunkler Köder über hellem Grund, heller Köder über dunklem.");
+  return {cols,why:A[1],tips}}
+function analyzeWater(src){return new Promise(res=>{const img=new Image();img.onload=()=>{try{const W=80,Hh=Math.max(1,Math.round(80*img.height/img.width)),cv=document.createElement("canvas");cv.width=W;cv.height=Hh;
+    const ctx=cv.getContext("2d");ctx.drawImage(img,0,0,W,Hh);const d=ctx.getImageData(Math.round(W*.2),Math.round(Hh*.35),Math.max(1,Math.round(W*.6)),Math.max(1,Math.round(Hh*.5))).data;
+    let r=0,g=0,b=0,n=0;for(let i=0;i<d.length;i+=4){r+=d[i];g+=d[i+1];b+=d[i+2];n++}r/=n*255;g/=n*255;b/=n*255;
+    const mx=Math.max(r,g,b),mn=Math.min(r,g,b),L=(mx+mn)/2,Sa=mx===mn?0:(mx-mn)/(1-Math.abs(2*L-1));let h=0;
+    if(mx!==mn){const dd=mx-mn;h=mx===r?60*(((g-b)/dd)%6):mx===g?60*((b-r)/dd+2):60*((r-g)/dd+4);if(h<0)h+=360}
+    let turb,why;
+    if(Sa<.12){turb=L>.55?"trueb":"klar";why=L>.55?"hell und grau, eher milchig":"neutral bis dunkel"}
+    else if(h>=15&&h<55){turb=L>.42?"trueb":"braun";why=L>.42?"hellbraun, wie lehmiges Wasser":"dunkelbraun, wie Moorwasser"}
+    else if(h>=55&&h<170){turb=Sa>.35?"trueb":"leicht";why=Sa>.35?"kräftig grün, viele Schwebalgen":"grünlich"}
+    else{turb="klar";why="bläulich"}
+    res({turb,why})}catch(e){res(null)}};img.onerror=()=>res(null);img.src=src})}
+/* Pegel nur für Fließgewässer – im Prototyp Beispielwerte */
+function pegelOf(w){if(!w||!(w.type==="fluss"||w.type==="bach"))return null;let h=0;for(const ch of w.id+w.name)h=(h*31+ch.charCodeAt(0))%9973;
+  const st=["fallend","steigend","normal","normal","fallend","hoch"][h%6],lvl=1.1+(h%140)/100+(st==="hoch"?2.2:0);
+  const T={fallend:"fällt seit 2 Tagen nach erhöhtem Wasserstand",steigend:"steigt leicht seit gestern",normal:"stabil, normal für die Jahreszeit",hoch:"Hochwasser, deutlich über Normal"};
+  return {st,txt:fmt1(lvl).replace(",",",")+" m · "+T[st]}}
+function pegelAdvice(st,sp){if(st==="hoch")return "Hochwasser: starke Strömung, Treibgut, rutschige Ufer. Lieber nicht ans Wasser.";
+  if(st==="fallend")return "Fallendes Wasser nach erhöhtem Pegel gilt als gute Zeit"+(isPred(sp)?", besonders an Buhnen und Strömungskanten.":".");
+  if(st==="steigend")return ["aal","zander","wels","barbe","quappe"].includes(sp)?"Leicht steigendes, trübes Wasser bringt "+spName(sp)+" oft in Ufernähe.":"Steigendes Wasser macht viele Fische unruhig. Ruhige Bereiche hinter Buhnen suchen.";
+  return "Normaler Wasserstand, keine Besonderheit."}
+/* Lernen aus eigenen Daten */
+const NEEDP=10;
+const condOf=m=>({press:m.o.dp<-2?"fallend":m.o.dp>2?"steigend":"stabil",light:m.lc,cloud:m.o.c>70?"bedeckt":m.o.c<30?"klar":"wechselnd"});
+const fishOf=(e,sp)=>catchesOf(e).filter(c=>c.species===sp).length;
+const spEntries=(sp,list)=>list.filter(e=>(e.species===sp||catchesOf(e).some(c=>c.species===sp))&&e.wx&&e.dur);
+const CLAB={press:{fallend:"bei fallendem Luftdruck",stabil:"bei stabilem Luftdruck",steigend:"bei steigendem Luftdruck"},light:{dawn:"in der Dämmerung",day:"tagsüber",night:"nachts"},cloud:{klar:"bei klarem Himmel",wechselnd:"bei wechselnder Bewölkung",bedeckt:"bei bedecktem Himmel"}};
+function personal(sp,cond,list,base){const es=spEntries(sp,list),n=es.length;if(n<NEEDP)return {n,active:false};
+  const hrs=es.reduce((a,e)=>a+e.dur,0),fish=es.reduce((a,e)=>a+fishOf(e,sp),0),R=hrs?fish/hrs:0;if(!R)return {n,active:false};
+  const facts=[];["press","light","cloud"].forEach(k=>{const rs=es.filter(e=>e.wx[k]===cond[k]);if(rs.length<3)return;
+    const h=rs.reduce((a,e)=>a+e.dur,0),f=rs.reduce((a,e)=>a+fishOf(e,sp),0);facts.push({k,ratio:clamp((h?f/h:0)/R,.4,2.5),n:rs.length,label:CLAB[k][cond[k]]})});
+  if(!facts.length)return {n,active:false};
+  const pf=Math.exp(facts.reduce((a,f)=>a+Math.log(f.ratio),0)/facts.length),w=Math.min(.5,n/60),score=clamp(base*(1-w)+clamp(base*pf,0,10)*w,0,10);
+  const top=facts.slice().sort((a,b)=>Math.abs(Math.log(b.ratio))-Math.abs(Math.log(a.ratio)))[0];
+  const insight=top.ratio>=1.15?cap(top.label)+" fängst du "+fmt1(top.ratio)+"× so viele "+spName(sp)+" pro Stunde wie im Schnitt ("+top.n+" Angeltage).":
+    top.ratio<=.85?cap(top.label)+" fängst du nur "+Math.round(top.ratio*100)+" % deines üblichen Schnitts ("+top.n+" Angeltage).":"Diese Bedingungen sind bei dir bisher durchschnittlich.";
+  const sim=es.filter(e=>fishOf(e,sp)>0&&["press","light","cloud"].filter(k=>e.wx[k]===cond[k]).length>=2).sort((a,b)=>fishOf(b,sp)/b.dur-fishOf(a,sp)/a.dur).slice(0,2);
+  return {n,active:true,score,delta:score-base,insight,sim}}
+function baitInsight(turb,sp,list){const cnt={};list.forEach(e=>{if(!e.wx||e.wx.turb!==turb)return;catchesOf(e).forEach(c=>{if(c.bait&&(!sp||c.species===sp)){const k=c.bait.trim();cnt[k]=(cnt[k]||0)+1}})});
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];return top&&top[1]>=2?{bait:top[0],n:top[1]}:null}
+let learnDemo=false;
+/* Erfolgs-Animationen */
+const celebQ=[];
+function celebrate(kind,data){celebQ.push({kind,data});if(celebQ.length===1)showCeleb()}
+function svgEl(html,cls){const t=document.createElement("template");t.innerHTML=html.trim();const n=t.content.firstChild;if(cls)n.setAttribute("class",cls);return n}
+function showCeleb(){const c=celebQ[0],O=$("#celeb");if(!c)return;O.replaceChildren();const card=el("div","cel-card");
+  if(c.kind==="pb"){const d=c.data;
+    card.append(svgEl('<svg viewBox="0 0 110 110" aria-hidden="true"><g class="rays"><path class="r" d="M55 4v12M55 84v12M6 50h12M92 50h12M20 15l9 9M81 76l9 9M20 85l9-9M81 24l9-9" stroke-width="4" stroke-linecap="round" fill="none"/></g><path class="g" d="M33 22h44v18a22 22 0 0 1-44 0z"/><path class="gs" d="M33 28H23a10 10 0 0 0 12 16M77 28h10a10 10 0 0 1-12 16" fill="none" stroke-width="5"/><rect class="g" x="51" y="61" width="8" height="12"/><rect class="g" x="38" y="73" width="34" height="9" rx="2"/></svg>',"troph"));
+    card.append(el("p","cel-k","Neuer PB"),el("div","cel-big",d.len+" cm"),el("p","cel-t",spName(d.sp)+(d.prev?" · vorher "+d.prev+" cm":" · dein erster mit Länge")));
+    const tp=el("div","tape"),fl=el("div","fill"),mk=el("div","mark"),tk=el("div","ticks"),max=Math.max(d.len*1.25,30),pos=d.len/max*100;fl.style.width=pos+"%";mk.style.left="calc("+pos+"% - 1px)";tp.append(fl,tk,mk);card.append(tp)}
+  else{const d=c.data;card.append(el("div","rankbadge",String(d.i+1)),el("p","cel-k","Neuer Rang"),el("div","cel-big",d.name),el("p","cel-t","Rang "+(d.i+1)+" von "+RANKS.length+" · "+d.xp+" Punkte"))}
+  card.append(el("p","hint","Tippen zum Schließen"));O.append(card);O.hidden=false;
+  const close=()=>{if(O.hidden)return;O.hidden=true;celebQ.shift();if(celebQ.length)setTimeout(showCeleb,250)};O.onclick=close;clearTimeout(showCeleb.t);showCeleb.t=setTimeout(close,4000)}
+/* Wasser am Gewässer merken */
+const freshTurb=()=>S.turb&&Date.now()-S.turb.ts<2*864e5?S.turb.v:null;
+const turbAge=()=>{const d=Math.floor((Date.now()-S.turb.ts)/864e5);return d<1?"heute":d<2?"gestern":"vor "+d+" Tagen"};
+/* Köderbox */
+const LTYPES=["Gummifisch","Wobbler","Spinner","Blinker","Jig","Naturköder","Fliege","Sonstiges"];
+const lureById=id=>S.lures.find(l=>l.id===id);
+function lureImg(l){const p=l&&photoOf(l);if(p){const i=el("img","lure-img");i.src=p;i.alt="";return i}const d=el("div","lure-img");d.append(svgIcon(IC.hook));return d}
+function lureOrder(){const last=lureById(S.lastLure);const rest=S.lures.filter(l=>l!==last).sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||a.name.localeCompare(b.name,"de"));return last?[last].concat(rest):rest}
+function lureStats(id,list){let n=0,big=null;const sp=new Set();list.forEach(e=>catchesOf(e).forEach(c=>{if(c.lureId!==id)return;n++;sp.add(spName(c.species));if(c.len&&(!big||c.len>big.len))big=c}));return {n,sp:[...sp],big}}
+function loadImg(src){return new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=src})}
+async function cutout(src){try{const img=await loadImg(src),M=360,sc=Math.min(1,M/Math.max(img.width,img.height)),W=Math.max(1,Math.round(img.width*sc)),Hh=Math.max(1,Math.round(img.height*sc));
+  const cv=document.createElement("canvas");cv.width=W;cv.height=Hh;const x=cv.getContext("2d");x.drawImage(img,0,0,W,Hh);const id=x.getImageData(0,0,W,Hh),d=id.data;
+  let r=0,g=0,b=0,n=0;const B=[];const add=p=>{const i=p*4;B.push([d[i],d[i+1],d[i+2]]);r+=d[i];g+=d[i+1];b+=d[i+2];n++};
+  for(let X=0;X<W;X++){add(X);add((Hh-1)*W+X)}for(let Y=0;Y<Hh;Y++){add(Y*W);add(Y*W+W-1)}r/=n;g/=n;b/=n;
+  const bd=B.reduce((a,c)=>a+Math.hypot(c[0]-r,c[1]-g,c[2]-b),0)/B.length;if(bd>45)return {ok:false};
+  const T1=Math.max(30,bd*2),T2=T1+40;let minX=W,minY=Hh,maxX=0,maxY=0,kept=0;
+  for(let i=0,p=0;i<d.length;i+=4,p++){const dist=Math.hypot(d[i]-r,d[i+1]-g,d[i+2]-b),a=dist<=T1?0:dist>=T2?255:Math.round((dist-T1)/(T2-T1)*255);d[i+3]=a;
+    if(a>128){kept++;const X=p%W,Y=(p/W)|0;if(X<minX)minX=X;if(X>maxX)maxX=X;if(Y<minY)minY=Y;if(Y>maxY)maxY=Y}}
+  if(kept<W*Hh*.02||kept>W*Hh*.85)return {ok:false};x.putImageData(id,0,0);
+  const bw=maxX-minX+1,bh=maxY-minY+1,side=Math.max(bw,bh)*1.15,o=document.createElement("canvas");o.width=o.height=320;
+  o.getContext("2d").drawImage(cv,minX-(side-bw)/2,minY-(side-bh)/2,side,side,0,0,320,320);return {ok:true,png:o.toDataURL("image/png")}}catch(e){return {ok:false}}}
+async function squareCrop(src){try{const img=await loadImg(src),side=Math.min(img.width,img.height),o=document.createElement("canvas");o.width=o.height=320;
+  o.getContext("2d").drawImage(img,(img.width-side)/2,(img.height-side)/2,side,side,0,0,320,320);return o.toDataURL("image/jpeg",.8)}catch(e){return src}}
+async function detectColor(src){try{const img=await loadImg(src),W=64,Hh=64,cv=document.createElement("canvas");cv.width=W;cv.height=Hh;const x=cv.getContext("2d");x.drawImage(img,0,0,W,Hh);
+  const d=x.getImageData(0,0,W,Hh).data,bins={dark:0,white:0,silver:0,red:0,orange:0,yellow:0,chart:0,green:0,blue:0,purple:0,brown:0};let n=0;
+  for(let i=0;i<d.length;i+=4){if(d[i+3]<128)continue;const R=d[i]/255,G=d[i+1]/255,Bb=d[i+2]/255,mx=Math.max(R,G,Bb),mn=Math.min(R,G,Bb),L=(mx+mn)/2,dd=mx-mn,Sa=dd?dd/(1-Math.abs(2*L-1)):0;
+    let h=0;if(dd){h=mx===R?60*(((G-Bb)/dd)%6):mx===G?60*((Bb-R)/dd+2):60*((R-G)/dd+4);if(h<0)h+=360}n++;
+    if(L<.18){bins.dark++;continue}if(Sa<.18){if(L>.8)bins.white++;else bins.silver++;continue}
+    if(h<15||h>=330)bins.red++;else if(h<40)(L<.38&&Sa<.6?bins.brown++:bins.orange++);else if(h<62)bins.yellow++;else if(h<95)bins.chart++;else if(h<165)bins.green++;else if(h<260)bins.blue++;else bins.purple++}
+  if(!n)return null;const f=k=>bins[k]/n;
+  if(f("chart")>.12&&f("orange")+f("yellow")>.12)return "firetiger";if(f("dark")>.45)return "schwarz";if(f("white")>.4)return "weiss";if(f("silver")>.45)return "weissfisch";
+  if(f("chart")>.25)return "chartreuse";if(f("brown")>.25)return "motoroil";if(f("red")+f("purple")>.3)return "rotpink";
+  if(f("orange")+f("yellow")>.3)return f("yellow")>f("orange")?"orange":(f("brown")>.08?"gold":"orange");if(f("green")>.25)return "natur";
+  const top=Object.entries(bins).sort((a,b)=>b[1]-a[1])[0][0];return {dark:"schwarz",white:"weiss",silver:"weissfisch",red:"rotpink",orange:"orange",yellow:"orange",chart:"chartreuse",green:"natur",blue:"weissfisch",purple:"rotpink",brown:"motoroil"}[top]}catch(e){return null}}
+let lureDraft=null;
+function openLure(id,onSaved){lastFocus=document.activeElement;const l=id&&lureById(id);
+  lureDraft=l?{id:l.id,name:l.name,type:l.type,color:l.color,fav:!!l.fav,img:photoOf(l),edit:true,onSaved}:{id:null,name:"",type:"Gummifisch",color:null,fav:false,img:null,orig:null,cut:null,useCut:true,onSaved};renderLure(true)}
+function renderLure(first){const A=lureDraft,M=$("#mcard");M.replaceChildren();
+  const hd=el("div","row between"),t=el("h2",null,A.edit?"Köder bearbeiten":"Neuer Köder"),x=el("button","ghost","Schließen");t.id="mTitle";x.type="button";x.addEventListener("click",closeModal);hd.append(t,x);M.append(hd);
+  const top=el("div","row");if(A.img){const im=el("img","lure-prev");im.src=A.img;im.alt="Köderfoto";top.append(im)}
+  const pc=el("div");pc.style.cssText="display:flex;flex-direction:column;gap:6px;flex:1 1 160px;min-width:0";
+  pc.append(photoPicker(null,"luPhoto",async d=>{A.orig=await squareCrop(d);const c=await cutout(d);A.cut=c.ok?c.png:null;A.useCut=!!A.cut;A.img=A.useCut?A.cut:A.orig;
+    const col=await detectColor(A.img);if(col&&!A.color)A.color=col;A.autoColor=col;A.cutFail=!c.ok;renderLure()},A.img?"Neues Foto":"Köder fotografieren"));
+  if(A.cut&&A.orig){const tg=el("button","ghost",A.useCut?"Original zeigen":"Freigestellt zeigen");tg.type="button";tg.addEventListener("click",()=>{A.useCut=!A.useCut;A.img=A.useCut?A.cut:A.orig;renderLure()});pc.append(tg)}
+  if(A.cutFail)pc.append(el("p","hint","Freistellen hat nicht geklappt, das Bild wird quadratisch zugeschnitten. Tipp: Köder auf hellem, einfarbigem Untergrund fotografieren. Auf dem iPhone geht auch „Motiv freistellen“ in der Fotos-App."));
+  else if(!A.img)pc.append(el("p","hint","Tipp: auf hellem, einfarbigem Untergrund fotografieren, dann schneidet die App den Köder aus."));
+  top.append(pc);M.append(top);
+  const nm=el("label","f","Name"),ni=el("input");ni.id="luName";ni.placeholder="z. B. Gummifisch 10 cm Chartreuse";ni.value=A.name;ni.addEventListener("input",()=>A.name=ni.value);nm.htmlFor="luName";nm.append(ni);
+  const ty=el("label","f","Ködertyp"),ts=el("select");ts.id="luType";LTYPES.forEach(v=>ts.add(new Option(v,v)));ts.value=A.type;ts.addEventListener("change",()=>A.type=ts.value);ty.htmlFor="luType";ty.append(ts);
+  const r=el("div","row");r.append(nm,ty);M.append(r);
+  M.append(el("h3",null,"Farbe"+(A.autoColor?" (erkannt: "+LURE[A.autoColor][0]+")":"")));const pk=el("div","swatches");
+  Object.entries(LURE).forEach(([k,v])=>{const b=el("button","sw");b.type="button";b.setAttribute("aria-pressed",A.color===k?"true":"false");if(A.color===k)b.style.outline="2px solid var(--accent)";const i=el("i");i.style.background=v[1];b.append(i,document.createTextNode(v[0]));b.addEventListener("click",()=>{A.color=k;renderLure()});pk.append(b)});M.append(pk);
+  const fv=el("label","chk"),fi=el("input");fi.type="checkbox";fi.id="luFav";fi.checked=A.fav;fi.addEventListener("change",()=>A.fav=fi.checked);fv.htmlFor="luFav";fv.append(fi,document.createTextNode("Lieblingsköder"));M.append(fv);
+  if(A.edit){const st=lureStats(A.id,S.entries.concat(S.live?[{catches:S.live.catches}]:[]));M.append(el("p","hint",st.n?st.n+" Fänge · "+st.sp.join(", ")+(st.big?" · größter Fisch "+st.big.len+" cm":""):"Mit diesem Köder noch nichts gefangen."))}
+  const row=el("div","row between"),ok=el("button","primary go","Köder speichern");ok.type="button";ok.style.flex="1 1 auto";
+  ok.addEventListener("click",async()=>{if(!A.name.trim()&&!A.img){flash("Gib dem Köder einen Namen oder mach ein Foto.");return}
+    const before=xpOf(S.entries);let l=A.edit?lureById(A.id):null;
+    if(!l){l={id:"l"+Date.now().toString(36)};S.lures.push(l)}
+    l.name=A.name.trim()||(A.type+(A.color?" "+LURE[A.color][0]:""));l.type=A.type;l.color=A.color;l.fav=A.fav;
+    if(A.img&&(A.orig||A.cut))await attachPhoto(l,A.img);save();closeModal();
+    flash(A.edit?"Köder gespeichert.":"Köder in der Box"+(l.photoId?" · +2 Punkte":"")+".");rankCheck(before);renderLures();if(A.onSaved)A.onSaved(l.id)});
+  row.append(ok);
+  if(A.edit){const del=el("button","ghost danger","Löschen");del.type="button";armDelete(del,"Löschen",()=>{const l=lureById(A.id);if(l)delPhoto(l.photoId);S.lures=S.lures.filter(x=>x.id!==A.id);save();closeModal();renderLures()});row.append(del)}
+  M.append(row);$("#modal").hidden=false;if(first)x.focus()}
+function renderLures(){const P=$("#lurePanel");if(!P)return;P.replaceChildren();
+  const hd=el("div","row between"),add=el("button",null,"+ Köder");add.type="button";add.addEventListener("click",()=>openLure(null));hd.append(el("h2",null,"Meine Köderbox"),add);P.append(hd);
+  if(!S.lures.length){P.append(el("p","hint","Noch leer. Fotografiere deine Köder, dann wählst du sie beim Fang mit einem Tipp aus."));return}
+  const box=el("div","lurebox");S.lures.slice().sort((a,b)=>(b.fav?1:0)-(a.fav?1:0)||a.name.localeCompare(b.name,"de")).forEach(l=>{const t=el("button","lure-tile");t.type="button";
+    t.append(lureImg(l),document.createTextNode(l.name));const st=lureStats(l.id,S.entries);t.append(el("small",null,(l.color?LURE[l.color][0]:"")+(st.n?" · "+st.n+" Fänge":"")));
+    if(l.fav){const f=svgEl('<svg viewBox="0 0 24 24" aria-label="Lieblingsköder"><path fill="currentColor" d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7L12 17.6 5.8 21l1.4-7L2 9.3l7-.8z"/></svg>',"fav");t.append(f)}
+    t.addEventListener("click",()=>openLure(l.id));box.append(t)});P.append(box)}
+function colorInsight(turb,list,sp){const cnt={};let tot=0;list.forEach(e=>{if(!e.wx||e.wx.turb!==turb)return;catchesOf(e).forEach(c=>{if(!c.lureColor||(sp&&c.species!==sp))return;cnt[c.lureColor]=(cnt[c.lureColor]||0)+1;tot++})});
+  const top=Object.entries(cnt).sort((a,b)=>b[1]-a[1])[0];return top&&tot>=3?{color:top[0],n:top[1],tot}:null}
+const WTYPES={fluss:{name:"Fluss",tau:4,off:0},bach:{name:"Bach",tau:3,off:-.5},kanal:{name:"Kanal",tau:6,off:.2},teich:{name:"Teich",tau:4,off:.3},see:{name:"See",tau:9,off:.5},talsperre:{name:"Talsperre",tau:14,off:.8}};
+
+/* ---------- Zustand ---------- */
+const DEFAULT={home:"Dresden (Beispiel)",radius:30,species:"zander",favs:["hecht","zander","barsch"],favsSet:false,selWater:"w1",seenBadges:[],live:null,
+  waters:[{id:"w1",name:"Elbe (Beispiel)",type:"fluss",dist:4,nr:""},{id:"w2",name:"Kiesgrube (Beispiel)",type:"see",dist:9,nr:""},
+    {id:"w3",name:"Dorfteich (Beispiel)",type:"teich",dist:15,nr:""},{id:"w4",name:"Talsperre (Beispiel)",type:"talsperre",dist:24,nr:""},
+    {id:"w5",name:"Mulde (Beispiel)",type:"fluss",dist:68,nr:""}],entries:[]};
+let S=null;try{S=JSON.parse(localStorage.getItem("beissindex.v3"))}catch(e){}
+if(!S||!Array.isArray(S.waters))S=JSON.parse(JSON.stringify(DEFAULT));
+if(!Array.isArray(S.seenBadges))S.seenBadges=[];
+if(!Array.isArray(S.lures))S.lures=[];
+if(!S.turb){const o=S.waters.filter(w=>w.turb).sort((a,b)=>b.turb.ts-a.turb.ts)[0];if(o)S.turb=o.turb;S.waters.forEach(w=>delete w.turb)}
+if(!Array.isArray(S.favs))S.favs=["hecht","zander","barsch"];S.favs=S.favs.filter(k=>SPECIES[k]).slice(0,5);if(!S.favs.includes(S.species))S.species=S.favs[0]||"hecht";
+/* Fotos: IndexedDB (viel Platz), Zustand: localStorage */
+const PH=new Map();let idb=null;
+function idbOpen(){return new Promise(res=>{try{const r=indexedDB.open("beissindex",1);r.onupgradeneeded=()=>r.result.createObjectStore("photos");r.onsuccess=()=>res(r.result);r.onerror=()=>res(null);r.onblocked=()=>res(null)}catch(e){res(null)}})}
+function putPhoto(id,data){PH.set(id,data);if(!idb)return Promise.resolve(false);return new Promise(res=>{try{const tx=idb.transaction("photos","readwrite");tx.objectStore("photos").put(data,id);tx.oncomplete=()=>res(true);tx.onerror=tx.onabort=()=>res(false)}catch(e){res(false)}})}
+function delPhoto(id){PH.delete(id);if(!idb||!id)return;try{idb.transaction("photos","readwrite").objectStore("photos").delete(id)}catch(e){}}
+function loadPhotos(){if(!idb)return Promise.resolve();return new Promise(res=>{try{const rq=idb.transaction("photos").objectStore("photos").openCursor();rq.onsuccess=()=>{const c=rq.result;if(c){PH.set(c.key,c.value);c.continue()}else res()};rq.onerror=()=>res()}catch(e){res()}})}
+const photoOf=c=>c?(c.photo||(c.photoId&&PH.get(c.photoId))||null):null;
+async function attachPhoto(c,data){c.photoId="p_"+(c.id||Date.now().toString(36));if(!(await putPhoto(c.photoId,data)))c.photo=data}
+function save(){try{localStorage.setItem("beissindex.v3",JSON.stringify(S));return true}catch(e){return false}}
+
+/* ---------- Zeit ---------- */
+const pf=new Intl.DateTimeFormat("de-DE",{timeZone:TZ,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+function bParts(ts){const o={};pf.formatToParts(new Date(ts)).forEach(p=>o[p.type]=p.value);return {y:+o.year,m:+o.month,d:+o.day,h:+o.hour,mi:o.minute,key:o.year+"-"+o.month+"-"+o.day}}
+const wdFmt=new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"short"});
+const longFmt=new Intl.DateTimeFormat("de-DE",{timeZone:TZ,weekday:"long",day:"numeric",month:"long"});
+const timeFmt=new Intl.DateTimeFormat("de-DE",{timeZone:TZ,hour:"2-digit",minute:"2-digit"});
+const now0=Date.now(),np=bParts(now0);
+const offH=Math.round((Date.UTC(np.y,np.m-1,np.d,np.h)-Math.floor(now0/36e5)*36e5)/36e5);
+const PAST=14,FUT=7,NDAYS=PAST+FUT,start=Date.UTC(np.y,np.m-1,np.d-PAST,0)-offH*36e5;
+
+/* ---------- Beispielwetter ---------- */
+let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return (seed-1)/2147483646};
+const D={t:[],p:[],c:[],w:[],r:[]};
+for(let i=0;i<PAST;i++){D.t.push(15.5-i*.25+(rnd()-.5)*2.4);D.p.push(1015+(rnd()-.5)*12);D.c.push(35+rnd()*55);D.w.push(6+rnd()*14);D.r.push(rnd()*.6)}
+[12.5,14,11.5,8.5,7.5,9,11].forEach(v=>D.t.push(v));[1016,1010,1001,1009,1021,1024,1018].forEach(v=>D.p.push(v));
+[60,75,95,55,15,30,80].forEach(v=>D.c.push(v));[.1,.35,.9,.4,0,.05,.5].forEach(v=>D.r.push(v));[10,18,32,22,8,6,14].forEach(v=>D.w.push(v));
+function interp(a,x){const i=clamp(Math.floor(x),0,a.length-1),j=clamp(i+1,0,a.length-1),f=clamp(x-Math.floor(x),0,1);return a[i]+(a[j]-a[i])*f}
+function sunTimes(ts){const p=bParts(ts),doy=Math.floor((Date.UTC(p.y,p.m-1,p.d)-Date.UTC(p.y,0,0))/864e5);
+  const dec=23.44*Math.sin(2*Math.PI*(284+doy)/365)*Math.PI/180,lat=LAT*Math.PI/180;
+  const ha=Math.acos(clamp((Math.sin(-.833*Math.PI/180)-Math.sin(lat)*Math.sin(dec))/(Math.cos(lat)*Math.cos(dec)),-1,1))*180/Math.PI;
+  const B=2*Math.PI*(doy-81)/364,eot=9.87*Math.sin(2*B)-7.53*Math.cos(B)-1.5*Math.sin(B),noon=12-LON/15-eot/60,base=Date.UTC(p.y,p.m-1,p.d);
+  return {rise:base+(noon-ha/15)*36e5,set:base+(noon+ha/15)*36e5}}
+function moon(ts){const syn=29.530588853,age=(((ts-Date.UTC(2000,0,6,18,14))/864e5)%syn+syn)%syn;
+  const illum=(1-Math.cos(2*Math.PI*age/syn))/2;let name,bucket;
+  if(age<1.85||age>27.68){name="Neumond";bucket="Neumond"}else if(age<12.92){name=age<7.38?"Zunehmende Sichel":age<9.23?"Erstes Viertel":"Zunehmend";bucket="zunehmend"}
+  else if(age<16.61){name="Vollmond";bucket="Vollmond"}else{name=age<20.3?"Abnehmend":age<22.15?"Letztes Viertel":"Abnehmende Sichel";bucket="abnehmend"}
+  return {illum,name,bucket,frac:age/syn}}
+const H=[];
+for(let k=0;k<NDAYS*24;k++){const ts=start+k*36e5,p=bParts(ts),x=Math.floor(k/24)+(p.h-12)/24,c=interp(D.c,x),amp=4.2*(1-c/130);
+  H.push({ts,h:p.h,t:interp(D.t,x)+amp*Math.sin(2*Math.PI*(p.h-9)/24),p:interp(D.p,x),c,w:interp(D.w,x),rp:Math.round(clamp(interp(D.r,x)*100*(c/90),0,95))})}
+H.forEach((o,k)=>{o.dp=k>=12?o.p-H[k-12].p:0});
+const WT={};Object.keys(WTYPES).forEach(ty=>{const a=1-Math.exp(-1/WTYPES[ty].tau),arr=[D.t[0]+1.5];
+  for(let i=1;i<NDAYS;i++)arr.push(arr[i-1]+(D.t[i]-arr[i-1])*a);WT[ty]=arr.map(v=>v+WTYPES[ty].off)});
+const waterTemp=(ty,k)=>interp(WT[ty],k/24-.5);
+const kOf=ts=>Math.floor((ts-start)/36e5);
+
+/* ---------- Bewertung ---------- */
+function trap(v,[a,b,c,d]){if(v<=a||v>=d)return 0;if(v<b)return (v-a)/(b-a);if(v<=c)return 1;return (d-v)/(d-c)}
+function lightClass(ts){const s=sunTimes(ts),m=ts+18e5;if(Math.abs(m-s.rise)<=45e5||Math.abs(m-s.set)<=45e5)return "dawn";return (m>s.rise&&m<s.set)?"day":"night"}
+const pressF=(dp,mode)=>mode==="front"?(dp<-8?.7:dp<-2?.95:dp<=2?.65:dp<=5?.5:.35):(dp<-8?.4:dp<-2?.6:dp<=2?.9:dp<=5?.65:.45);
+const rangeF=(v,[lo,hi],span,floor)=>v>=lo&&v<=hi?1:Math.max(floor,1-(v<lo?lo-v:v-hi)/span);
+const cloudF=(c,X)=>rangeF(c,X.c,45,.3);
+const windF=(w,X)=>w>35?.1:rangeF(w,X.w,14,.25);
+function hourScore(k,sp,ty){k=clamp(k,0,H.length-1);const o=H[k],X=hasProfile(sp)?SPECIES[sp]:SPECIES.hecht,wt=waterTemp(ty,k),lc=lightClass(o.ts),lf=X.l[lc==="dawn"?0:lc==="day"?1:2];
+  const mn=moon(o.ts),mf=mn.bucket==="Neumond"||mn.bucket==="Vollmond"?.6:.5,tf=trap(wt,X.t),cf=lc==="night"?.85:cloudF(o.c,X),wf=windF(o.w,X),pf=pressF(o.dp,X.p);
+  return {s:10*(.40*tf+.22*lf+.12*cf+.10*wf+.11*pf+.05*mf),tf,lf,cf,wf,pf,wt,lc,mn,o}}
+function bestWindow(d,sp,ty){let best=null;for(let h=0;h<=21;h++){const k=d*24+h;let s=0;for(let j=0;j<3;j++)s+=hourScore(k+j,sp,ty).s;if(!best||s/3>best.avg)best={avg:s/3,k}}return best}
+const lvl=s=>s>=7?["g","Gute Chancen"]:s>=5?["w","Mittel"]:["b","Eher schwach"];
+const pressTxt=(dp,X)=>dp<-8?"Luftdruck fällt stark – Unwetter möglich, Sicherheit geht vor":dp<-2?(X.p==="front"?"Luftdruck fällt – vor Fronten oft aktiv":"Luftdruck fällt – Friedfische werden oft vorsichtig"):dp<=2?(X.p==="front"?"Luftdruck stabil – neutral":"Luftdruck stabil – passt"):"Luftdruck steigt – nach Fronten oft zäh";
+function lightTxt(m,sp){const X=SPECIES[sp],n=spName(sp);
+  if(m.lc==="night")return "Nacht – "+(X.l[2]>=.8?n+" ist nachtaktiv":"für "+n+" eher ungünstig");
+  const c=Math.round(m.o.c),pre=(m.lc==="dawn"?"Dämmerung, ":"")+"Bewölkung "+c+" %";
+  return pre+(m.cf>=.99?" – passt (ideal "+X.c[0]+"–"+X.c[1]+" %)":c<X.c[0]?" – zu sonnig für "+n:" – zu trüb für "+n)}
+function windTxt(m,sp){const X=SPECIES[sp],n=spName(sp),w=Math.round(m.o.w);
+  if(w>35)return "Sturm ("+w+" km/h) – bitte nicht ans Wasser";
+  if(m.wf>=.99)return "Wind "+w+" km/h – "+(w<5?"fast windstill, passt für "+n:"leichte Wellen, passt für "+n);
+  return "Wind "+w+" km/h – "+(w<X.w[0]?"zu ruhig, glatte Oberfläche":"zu viel Wind für "+n)}
+const inRadius=()=>S.waters.filter(w=>w.dist<=S.radius);
+const waterById=id=>S.waters.find(w=>w.id===id);
+let selDay=PAST,detailPinned=false;
+
+/* ---------- Icons ---------- */
+const IC={hook:"M14 3v10a4 4 0 1 1-8 0v-2",check:"M5 12l4 4 10-10",dawn:"M4 18h16M7 18a5 5 0 0 1 10 0M12 7v3M5.5 10.5l2 2M18.5 10.5l-2 2",
+  moon:"M19 14.5A7.5 7.5 0 1 1 9.5 5a6 6 0 0 0 9.5 9.5z",fish:"M3 12c3-4 8-5 12-3l5-3v12l-5-3c-4 2-9 1-12-3z",target:"M12 4a8 8 0 1 0 .01 0M12 9a3 3 0 1 0 .01 0",
+  pin:"M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11zM12 8.5v3",map:"M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14",wind:"M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3",
+  lens:"M11 5a6 6 0 1 0 .01 0M20 20l-4.5-4.5",bell:"M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0",camera:"M4 8h3l2-3h6l2 3h3v11H4zM12 10a3.5 3.5 0 1 0 .01 0"};
+IC.therm="M10 4a2 2 0 0 1 4 0v9.5a4 4 0 1 1-4 0zM12 9v7";IC.baro="M4 16a8 8 0 1 1 16 0M12 16l4-5M8 20h8";IC.drop="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z";IC.sunc="M8 4v2M3 9h2M4.5 5.5l1.4 1.4M12 7.5A4 4 0 0 0 5 10M8 20h9a4 4 0 0 0 .5-8 5 5 0 0 0-9.5 1.5A3.3 3.3 0 0 0 8 20z";IC.gauge="M6 3h4v18H6zM6 7h2M6 11h2M6 15h2M14 9h6M14 9l3-3M14 9l3 3";
+function wxIcon(c,rp,night,cls){const sun=c<85,cloud=c>=25,rain=rp>=40,p=[];
+  if(sun&&!night)p.push('<g><circle cx="26" cy="26" r="11" fill="#F5B82E"/>'+[0,45,90,135,180,225,270,315].map(a=>{const r=a*Math.PI/180;return '<line x1="'+(26+16*Math.cos(r)).toFixed(1)+'" y1="'+(26+16*Math.sin(r)).toFixed(1)+'" x2="'+(26+21*Math.cos(r)).toFixed(1)+'" y2="'+(26+21*Math.sin(r)).toFixed(1)+'" stroke="#F5B82E" stroke-width="3.5" stroke-linecap="round"/>'}).join("")+'</g>');
+  if(sun&&night)p.push('<path d="M30 10a14 14 0 1 0 12 20A11 11 0 0 1 30 10z" fill="#E9D9A6"/>');
+  if(cloud)p.push('<path d="M22 58h34a12 12 0 0 0 1-24 16 16 0 0 0-30 4 10 10 0 0 0-5 20z" fill="'+(c>80?"#AFC2D2":"#D7E5F0")+'" stroke="#8FA9BE" stroke-width="1.5"/>');
+  if(rain)p.push('<g stroke="#3D86D6" stroke-width="3.5" stroke-linecap="round"><line x1="30" y1="64" x2="27" y2="71"/><line x1="40" y1="64" x2="37" y2="71"/><line x1="50" y1="64" x2="47" y2="71"/></g>');
+  return svgEl('<svg viewBox="0 0 72 74" aria-hidden="true">'+p.join("")+'</svg>',cls||"wxi")}
+function wxWord(c,rp){return rp>=60?"Regen":rp>=40?"Schauer möglich":c>85?"Bedeckt":c>55?"Stark bewölkt":c>25?"Leicht bewölkt":"Sonnig"}
+function sunArc(rise,set,at){const f=clamp((at-rise)/(set-rise),0,1),a=Math.PI*(1-f),x=80+62*Math.cos(a),y=78-62*Math.sin(a),up=at>rise&&at<set;
+  return svgEl('<svg viewBox="0 0 160 92" aria-hidden="true" style="width:100%;max-width:180px;height:auto"><path d="M18 78A62 62 0 0 1 142 78" fill="none" stroke="#9FC3D9" stroke-width="2.5" stroke-dasharray="4 5"/><line x1="8" y1="80" x2="152" y2="80" stroke="#8FA9BE" stroke-width="2"/>'+(up?'<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="10" fill="#F5B82E"/><circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="15" fill="#F5B82E" opacity=".25"/>':'<circle cx="'+(f<=0?18:142)+'" cy="78" r="7" fill="#8FA9BE"/>')+'</svg>')}
+function moonSvg(frac,size){const r=size/2-2,cx=size/2,cy=size/2,k=Math.cos(2*Math.PI*frac),rx=Math.abs(k)*r,wax=frac<.5;
+  const so=wax?1:0,si=wax?(k<0?1:0):(k<0?0:1);
+  const lit=(frac<.02||frac>.98)?"":'<path d="M'+cx+' '+(cy-r)+' A'+r+' '+r+' 0 0 '+so+' '+cx+' '+(cy+r)+' A'+rx.toFixed(2)+' '+r+' 0 0 '+si+' '+cx+' '+(cy-r)+'Z" fill="#F1E5BE"/>';
+  return svgEl('<svg viewBox="0 0 '+size+' '+size+'" width="'+size+'" height="'+size+'" aria-hidden="true"><circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="#3A4852"/>'+lit+'<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" fill="none" stroke="#8FA9BE" stroke-width="1"/></svg>')}
+function windSock(w){const n=w>35?5:Math.round(clamp(w/6,0,5)),ang=-(70-n*13);let segs="";for(let i=0;i<5;i++){const on=i<n;segs+='<rect x="'+(14+i*9)+'" y="'+(10+i*.8)+'" width="9" height="'+(14-i*1.6)+'" fill="'+(on?(i%2?"#F4F6F3":"#E8552B"):"none")+'" stroke="'+(on?"#B9472A":"#8FA9BE")+'" stroke-width="1" stroke-dasharray="'+(on?"0":"2 2")+'"/>'}
+  return svgEl('<svg viewBox="0 0 64 64" width="56" height="56" aria-hidden="true"><line x1="10" y1="6" x2="10" y2="60" stroke="#8FA9BE" stroke-width="3" stroke-linecap="round"/><g transform="rotate('+ang+' 10 17)">'+segs+'</g></svg>')}
+function liIc(ic,text){const l=el("li");l.append(svgIcon(IC[ic]),el("span",null,text));return l}
+function svgIcon(d){const ns="http://www.w3.org/2000/svg",s=document.createElementNS(ns,"svg");s.setAttribute("viewBox","0 0 24 24");s.setAttribute("fill","none");s.setAttribute("stroke","currentColor");s.setAttribute("stroke-width","1.8");s.setAttribute("stroke-linecap","round");s.setAttribute("stroke-linejoin","round");const p=document.createElementNS(ns,"path");p.setAttribute("d",d);s.append(p);return s}
+
+/* ---------- Tabs ---------- */
+function showTab(name){
+  document.querySelectorAll("nav.tabs .in button").forEach(x=>x.setAttribute("aria-selected",x.dataset.tab===name?"true":"false"));
+  document.querySelectorAll(".tab").forEach(t=>t.hidden=t.id!=="t-"+name);
+  window.scrollTo({top:0});
+  if(name==="erfolge"){renderErfolge();S.seenBadges=computeBadges(S.entries).filter(x=>x.on).map(x=>x.id);save();$("#newDot").hidden=true}
+  renderLivebar();}
+document.querySelectorAll("nav.tabs .in button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+$("#livebar").addEventListener("click",()=>showTab("fangbuch"));
+const currentTab=()=>document.querySelector("nav.tabs .in button[aria-selected=true]").dataset.tab;
+
+/* ---------- Heute ---------- */
+let favOpen=!S.favsSet;
+function renderChips(){const c=$("#chips");c.replaceChildren();
+  S.favs.forEach(k=>{const b=el("button",ruleFor(k,null).closed&&!REG[k].year?"closed":null,spName(k));b.type="button";if(ruleFor(k,null).closed&&!REG[k].year)b.title="Schonzeit";b.setAttribute("aria-pressed",k===S.species?"true":"false");
+    b.addEventListener("click",()=>{S.species=k;save();renderChips();renderHeute()});c.append(b)});
+  const e=el("button","edit",S.favs.length<5?"+ Fisch":"Ändern");e.type="button";e.addEventListener("click",()=>{favOpen=true;renderFav()});c.append(e);renderFav()}
+function renderFav(){const P=$("#favPanel");P.hidden=!favOpen;$("#chips").hidden=favOpen;P.replaceChildren();if(!favOpen)return;
+  P.append(el("h2",null,"Deine Top 5 Fische"));
+  P.append(el("p","hint",S.favsSet?"Für diese Fische siehst du die Vorhersage. Tippe zum Wählen oder Abwählen.":"Wähle bis zu 5 Fische, für die du die Vorhersage sehen willst. Fangen und eintragen kannst du trotzdem alle Arten."));
+  const full=S.favs.length>=5;
+  P.append(el("p","verdict",S.favs.length+" von 5 gewählt"+(full?" · Nimm erst einen raus, um einen anderen zu wählen.":"")));
+  GROUPS.forEach(([g,lab])=>{P.append(el("h3",null,lab));const box=el("div","picks");
+    Object.entries(SPECIES).filter(([k,v])=>v.g===g).forEach(([k,v])=>{const on=S.favs.includes(k),b=el("button",null,v.name);b.type="button";b.setAttribute("aria-pressed",on?"true":"false");
+      if(full&&!on){b.disabled=true;b.title="Nimm erst einen anderen Fisch raus"}
+      b.addEventListener("click",()=>{if(on)S.favs=S.favs.filter(x=>x!==k);else if(S.favs.length<5)S.favs.push(k);save();renderFav()});box.append(b)});P.append(box)});
+  const ok=el("button","primary",S.favs.length?"Fertig":"Mindestens einen Fisch wählen");ok.type="button";ok.disabled=!S.favs.length;
+  ok.addEventListener("click",()=>{S.favsSet=true;favOpen=false;if(!S.favs.includes(S.species))S.species=S.favs[0];save();renderChips();renderHeute()});P.append(ok)}
+let learnOpen=false;
+function renderHeute(){
+  let LB=null;const sp=S.species,hero=$("#hero"),now=Date.now();hero.replaceChildren();
+  const cand=[];inRadius().forEach(w=>{for(let d=PAST;d<NDAYS;d++){const b=bestWindow(d,sp,w.type);if(H[b.k].ts+3*36e5>now)cand.push({w,b})}});
+  cand.sort((a,b)=>b.b.avg-a.b.avg);
+  if(!cand.length){hero.append(el("h2",null,"Kein Gewässer im Umkreis"),el("p","hint","Vergrößere den Umkreis oder lege unter „Gewässer“ eins an."))}
+  else{const {w,b}=cand[0],m=hourScore(b.k+1,sp,w.type);
+    const RB=ruleLine(sp,w);if(RB.R.closed)hero.append(RB.box);
+    if(isPred(sp)&&predatorBan())hero.append(el("p","warn","1. Feb. – 30. Apr.: keine Raubfischköder (Sachsen)"));
+    const lrn=learnDemo?demoData():S.entries,P_=personal(sp,condOf(m),lrn,b.avg),sc=P_.active?P_.score:b.avg,[lc,lt]=lvl(sc);
+    const top=el("div","row between");top.append(el("h3",null,"Beste Chance für "+spName(sp)),el("span","lvl "+lc,sc>=7?"Alarm":lt));hero.append(top);
+    const g=el("div","gauge"),s=el("div","score",fmt1(sc));s.append(el("small",null," /10"));
+    const st=el("div","staff"),fi=el("i"),mk=el("b");fi.style.width=mk.style.left=(sc*10)+"%";st.append(fi,mk);st.setAttribute("role","img");st.setAttribute("aria-label","Bisswert "+fmt1(sc)+" von 10");
+    g.append(s,st);hero.append(g);
+    if(P_.active)hero.append(el("p","pers","Allgemein "+fmt1(b.avg)+" · an deine Fänge angepasst "+(P_.delta>=0?"+":"−")+fmt1(Math.abs(P_.delta))));
+    hero.append(el("div","where",w.name+" · "+longFmt.format(H[b.k].ts)+", "+timeFmt.format(H[b.k].ts)+"–"+timeFmt.format(H[b.k].ts+3*36e5)+" Uhr"));
+    const X=SPECIES[sp];
+    if(!detailPinned){S.selWater=w.id;selDay=Math.floor(b.k/24)}
+    LB=el("details","learn");const smy=el("summary",null,learnDemo?"Das sagen deine Daten (Beispiel)":"Das sagen deine Daten");LB.append(smy);if(learnOpen)LB.open=true;LB.addEventListener("toggle",()=>{learnOpen=LB.open});
+    if(P_.active){LB.append(el("p",null,P_.insight));P_.sim.forEach(e=>{const dt=new Date(e.date+"T12:00:00").toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"});
+        LB.append(el("p",null,"Ähnlicher Tag: "+dt+" · "+e.water+" · "+fishOf(e,sp)+" "+spName(sp)+" in "+fmt1(e.dur)+" h"))})}
+    else LB.append(el("p","hint",learnDemo?"Im Beispiel gibt es nur genug Daten für Zander, Hecht und Barsch.":"Ab "+NEEDP+" Angeltagen auf "+spName(sp)+" lernt der Bisswert von dir und erkennt Tage, an denen du besonders gut fängst ("+P_.n+" von "+NEEDP+")."));
+    const lb=el("button","ghost",learnDemo?"Beispiel ausblenden":"Beispiel ansehen");lb.type="button";lb.addEventListener("click",()=>{learnDemo=!learnDemo;learnOpen=true;renderHeute()});LB.append(lb);
+    LB.append(el("p","hint","Typisch für "+spName(sp)+": "+X.tip));
+    }
+  const MP=$("#morePanel");MP.replaceChildren();MP.hidden=cand.length<2;
+  if(cand.length>1){MP.append(el("h2",null,"Weitere gute Zeitfenster"));const more=el("div","more");
+    const seen=new Set();cand.slice(1).filter(({w,b})=>{const k=w.id+"|"+Math.floor(b.k/24);if(seen.has(k))return false;seen.add(k);return true}).slice(0,4).forEach(({w,b})=>{const r=el("button","al"+(b.avg>=7?" hot":""));r.type="button";const t=el("div");t.textContent=longFmt.format(H[b.k].ts)+", "+timeFmt.format(H[b.k].ts)+" Uhr · "+w.name;r.append(t,el("span","s",fmt1(b.avg)));
+      r.addEventListener("click",()=>{detailPinned=true;S.selWater=w.id;selDay=Math.floor(b.k/24);save();renderHeute();const d=$("#waterSel");d&&d.scrollIntoView({behavior:"smooth",block:"start"})});more.append(r)});
+    MP.append(more,el("p","hint","Tippen zeigt das Fenster oben im Detail."))}
+  const ws=$("#waterSel");ws.replaceChildren();S.waters.forEach(w=>ws.add(new Option(w.name+" · "+w.dist+" km",w.id)));
+  if(!waterById(S.selWater))S.selWater=S.waters[0]&&S.waters[0].id;ws.value=S.selWater||"";
+  const w=waterById(S.selWater),days=$("#days"),det=$("#dayDetail");days.replaceChildren();det.replaceChildren();if(!w)return;
+  for(let d=PAST;d<NDAYS;d++){const b=bestWindow(d,sp,w.type),btn=el("button","day");btn.type="button";btn.setAttribute("aria-pressed",d===selDay?"true":"false");
+    const hn=H[d*24+13];btn.append(el("span","wd",d===PAST?"Heute":wdFmt.format(H[d*24+12].ts)),wxIcon(hn.c,hn.rp,false,"wxs"));const bar=el("span","bar"),f=el("i");f.style.height=(b.avg*10)+"%";bar.append(f);btn.append(bar,el("span","sc",fmt1(b.avg)));
+    btn.addEventListener("click",()=>{detailPinned=true;selDay=d;renderHeute()});days.append(btn)}
+  const b=bestWindow(selDay,sp,w.type),hrs=el("div","hours");
+  for(let h=0;h<24;h++){const x=hourScore(selDay*24+h,sp,w.type),bar=el("div",(h>=b.k-selDay*24&&h<b.k-selDay*24+3?"top ":"")+(x.lc==="night"?"night":""));bar.style.height=Math.max(2,x.s*10)+"%";bar.title=h+" Uhr: "+fmt1(x.s);hrs.append(bar)}
+  const ax=el("div","haxis");for(let i=0;i<24;i++)ax.append(el("span",null,i%6===0?String(i):""));
+  const m=hourScore(b.k+1,sp,w.type),facts=el("div","cond"),o=m.o,night=m.lc==="night";
+  {const c=el("div","ccard wide");c.append(wxIcon(o.c,o.rp,night));const mid=el("div");mid.append(el("h4",null,"Wetter im besten Fenster"));const bg=el("div","big",String(Math.round(o.t)));bg.append(el("small",null," °C Luft"));mid.append(bg,el("div",null,wxWord(o.c,o.rp)));
+   const kv=el("div","kv");[["drop","Regen",o.rp+" %"],["baro","Druck",Math.round(o.p)+" hPa "+(o.dp<-2?"↓":o.dp>2?"↑":"→")],["therm","Wasser",fmt1(m.wt)+" °C"],["sunc","Wolken",Math.round(o.c)+" %"]].forEach(([ic,k,v])=>{const a=el("span","mini-ic");a.append(svgIcon(IC[ic]),document.createTextNode(k));kv.append(a,el("b",null,v))});
+   const X=SPECIES[sp]||SPECIES.hecht,T=X.t,aft=t=>t.split(" – ").slice(1).join(" – ")||t,vr=el("div","vrow"),vt=(t,c)=>vr.append(el("span","vt "+c,t));
+   if(hasProfile(sp)){vt("Licht: "+aft(lightTxt(m,sp)).replace(/ \(ideal.*\)/,""),m.cf>=.99||(night&&X.l[2]>=.8)?"ok":"no");
+     vt("Wasser: "+(m.tf>=.95?"ideal":m.wt<T[1]?"etwas kühl":"etwas warm"),m.tf>=.95?"ok":"no");
+     const pt=pressTxt(o.dp,X);vt("Druck: "+aft(pt),/passt|aktiv/.test(pt)?"ok":/neutral/.test(pt)?"":"no")}
+   c.append(mid,kv);if(vr.children.length)c.append(vr);facts.append(c)}
+  {const s=sunTimes(H[selDay*24+12].ts),len=(s.set-s.rise)/36e5,c=el("div","ccard");c.append(el("h4",null,"Sonne · "+Math.floor(len)+" h "+Math.round((len%1)*60)+" min"),sunArc(s.rise,s.set,H[b.k].ts));
+   const kv=el("div","kv");kv.append(el("span",null,"Aufgang"),el("b",null,timeFmt.format(s.rise)),el("span",null,"Untergang"),el("b",null,timeFmt.format(s.set)));c.append(kv);facts.append(c)}
+  {const mn=m.mn,c=el("div","ccard");c.append(el("h4",null,"Mond"));const r2=el("div","row2");r2.append(moonSvg(mn.frac,58));const t=el("div");t.append(el("div",null,mn.name),el("div","hint",Math.round(mn.illum*100)+" % beleuchtet"));r2.append(t);c.append(r2,el("p","hint","Kaum belegter Einfluss, zählt nur 5 %."));facts.append(c)}
+  {const c=el("div","ccard wide");c.append(windSock(o.w));const mid=el("div");mid.append(el("h4",null,"Wind"));const bg=el("div","big",String(Math.round(o.w)));bg.append(el("small",null," km/h"));mid.append(bg);const wt=hasProfile(sp)?aftW(windTxt(m,sp)):(o.w>35?"Sturm":o.w>20?"kräftig, Wellen":o.w>=5?"leichte Wellen":"fast windstill");c.append(mid,el("span","vt "+(hasProfile(sp)&&m.wf>=.99?"ok":o.w>35||(hasProfile(sp)&&m.wf<.99)?"no":""),wt));facts.append(c)}
+  det.append(hrs,ax,el("p","hint","Bestes Fenster ab "+timeFmt.format(H[b.k].ts)+" Uhr · blass = Nacht · Wasser geschätzt ±2 °C"),facts);
+  const pg=pegelOf(w);if(pg){const pb=el("div","pegel");pb.append(el("h3",null,"Pegel (Beispiel)"),el("p",null,pg.txt),el("p",null,pegelAdvice(pg.st,sp)),
+    el("p","hint","In der App: Pegelonline des Bundes (Elbe) bzw. Landeshochwasserzentrum Sachsen."));det.append(pb)}
+  if(LB)det.append(LB);
+}
+const aftW=t=>t.split(" – ").slice(1).join(" – ")||t;
+$("#waterSel").addEventListener("change",e=>{detailPinned=true;S.selWater=e.target.value;save();selDay=PAST;renderHeute()});
+
+/* ---------- Gewässer ---------- */
+Object.entries(WTYPES).forEach(([k,v])=>$("#wType").add(new Option(v.name,k)));
+$("#home").value=S.home;$("#radius").value=S.radius;
+$("#home").addEventListener("change",e=>{S.home=e.target.value.trim()||"Wohnort";save()});
+$("#radius").addEventListener("input",e=>{S.radius=+e.target.value;save();renderGewaesser();renderHeute();if(found)renderResults()});
+/* Gewässersuche: im Prototyp Beispieldaten, in der App OpenStreetMap (Overpass) */
+let found=null,foundFilter="alle",searching=false;
+function exampleWaters(city){let h=0;for(const ch of city.toLowerCase())h=(h*31+ch.charCodeAt(0))%2147483647;let sd=h||1;const r=()=>{sd=(sd*16807)%2147483647;return (sd-1)/2147483646};
+  const orte=["Oberau","Lindenau","Birkenhain","Grünbach","Eichwalde","Wiesenthal","Rosenthal","Mühlbach","Kleinwaltersdorf","Hohenstein","Neudorf","Waldheim","Steinbach","Altenhain","Bergen","Seifersdorf"];
+  const pick=()=>orte[Math.floor(r()*orte.length)];
+  const T=[["see",()=>"Kiessee "+pick()],["see",()=>"Baggersee "+pick()],["teich",()=>"Großer Teich "+pick()],["teich",()=>"Mühlteich "+pick()],["teich",()=>"Dorfteich "+pick()],
+    ["talsperre",()=>"Talsperre "+pick()],["talsperre",()=>"Stausee "+pick()],["fluss",()=>["Weiße","Schwarze","Rote","Freiberger","Zwickauer"][Math.floor(r()*5)]+" Mulde"],["bach",()=>pick()+"er Bach"],["kanal",()=>pick()+"er Kanal"],["see",()=>pick()+"er See"],["see",()=>"Tagebausee "+pick()],["talsperre",()=>"Speicher "+pick()]];
+  const out=[],names=new Set();
+  for(let i=0;i<26;i++){const [type,fn]=T[Math.floor(r()*T.length)];const name=fn();if(names.has(name))continue;names.add(name);
+    const dist=Math.round(1+Math.pow(r(),1.3)*99),size=type==="fluss"||type==="bach"||type==="kanal"?Math.round(5+r()*60)+" km Länge":(type==="teich"?fmt1(.5+r()*6):Math.round(5+r()*180))+" ha";
+    out.push({id:"f"+i,name:name+" (Beispiel)",type,dist,size,drink:type==="talsperre"&&r()<.35})}
+  return out.sort((a,b)=>a.dist-b.dist)}
+$("#searchForm").addEventListener("submit",e=>{e.preventDefault();const city=$("#home").value.trim().replace(/,?\s*(sachsen|saxony)$/i,"");if(!city)return;S.home=city;save();
+  searching=true;found=null;renderResults();setTimeout(()=>{searching=false;found=exampleWaters(city);renderResults()},500)});
+function renderResults(){const P=$("#resultPanel");P.hidden=!searching&&!found;P.replaceChildren();
+  $("#searchBtn").disabled=searching;$("#searchBtn").textContent=searching?"Suche läuft …":"Gewässer suchen";
+  if(searching){P.append(el("p","hint","Suche Gewässer im Umkreis von "+S.radius+" km um "+S.home+" …"));return}
+  if(!found)return;
+  const inR=found.filter(f=>f.dist<=S.radius),counts={alle:inR.length};inR.forEach(f=>counts[f.type]=(counts[f.type]||0)+1);
+  const hd=el("div","row between");hd.append(el("h2",null,inR.length+" Gewässer gefunden"),el("span","hint",S.radius+" km um "+S.home+", nur Sachsen"));P.append(hd);
+  const ch=el("div","chips");[["alle","Alle"]].concat(Object.entries(WTYPES).map(([k,v])=>[k,v.name])).filter(([k])=>counts[k]).forEach(([k,lab])=>{
+    const b=el("button",null,lab+" "+counts[k]);b.type="button";b.setAttribute("aria-pressed",foundFilter===k?"true":"false");b.addEventListener("click",()=>{foundFilter=k;renderResults()});ch.append(b)});P.append(ch);
+  const L=el("div","list"),shown=inR.filter(f=>foundFilter==="alle"||f.type===foundFilter);
+  if(!shown.length)L.append(el("p","hint","Keine Gewässer dieser Art im Umkreis. Vergrößere den Umkreis."));
+  shown.forEach(f=>{const it=el("div","item"),m=el("div","main"),added=S.waters.some(w=>w.name===f.name);
+    m.append(el("div",null,f.name),el("div",null,WTYPES[f.type].name+" · "+f.dist+" km · "+f.size+(f.drink?" · Trinkwasser, Angeln meist verboten":"")));
+    const b=el("button",added?"ghost":"primary",added?"Hinzugefügt":"Hinzufügen");b.type="button";b.disabled=added;
+    b.addEventListener("click",()=>{S.waters.push({id:"w"+Date.now().toString(36),name:f.name,type:f.type,dist:f.dist,nr:""});save();flashW(f.name+" ist jetzt in deinen Gewässern.");renderGewaesser();renderHeute();renderResults()});
+    it.append(m,b);L.append(it)});P.append(L);
+  const ft=el("p","hint");ft.append(document.createTextNode("Beispieldaten. In der fertigen App kommen die Gewässer aus den amtlichen Daten des Sächsischen Landesamts für Umwelt (LfULG), ergänzt durch OpenStreetMap. Ob du dort angeln darfst, steht nicht in diesen Daten. Prüf das im "));
+  const a=el("a",null,"Angelatlas Sachsen");a.href="https://angelatlas-sachsen.de";a.target="_blank";a.rel="noopener";ft.append(a,document.createTextNode("."));P.append(ft)}
+function flashW(m){const t=$("#wMsg");t.textContent=m;clearTimeout(flashW.t);flashW.t=setTimeout(()=>t.textContent="",4000)}
+function armDelete(btn,label,fn){btn.addEventListener("click",()=>{if(btn.dataset.arm)fn();else{btn.dataset.arm="1";btn.textContent="Wirklich?";setTimeout(()=>{if(btn.isConnected){delete btn.dataset.arm;btn.textContent=label}},3000)}})}
+function waterOptions(sel,val){sel.replaceChildren();S.waters.forEach(w=>sel.add(new Option(w.name,w.id)));if(val&&waterById(val))sel.value=val}
+function renderGewaesser(){
+  $("#radiusVal").textContent=S.radius+" km";$("#wCount").textContent=inRadius().length+" von "+S.waters.length+" im Umkreis";
+  const L=$("#waterList");L.replaceChildren();
+  S.waters.slice().sort((a,b)=>a.dist-b.dist).forEach(w=>{const it=el("div","item wl"),m=el("div","main"),acts=el("div","acts");m.append(el("div",null,w.name),el("div",null,WTYPES[w.type].name+" · "+w.dist+" km"+(w.nr?" · Nr. "+w.nr:"")));
+    it.append(m,el("span","chip"+(w.dist>S.radius?" out":""),w.dist>S.radius?"außerhalb":"im Umkreis"));
+    const del=el("button","ghost danger","Entfernen");del.type="button";armDelete(del,"Entfernen",()=>{S.waters=S.waters.filter(x=>x.id!==w.id);save();renderAll();if(found)renderResults()});acts.append(del);it.append(acts);L.append(it)});
+  if(!S.waters.length)L.append(el("p","hint","Noch keine Gewässer. Such oben nach Gewässern in deiner Nähe."));}
+$("#waterForm").addEventListener("submit",e=>{e.preventDefault();const name=$("#wName").value.trim();if(!name)return;
+  S.waters.push({id:"w"+Date.now().toString(36),name,type:$("#wType").value,dist:Math.max(0,+$("#wDist").value||0),nr:$("#wNr").value.trim()});save();e.target.reset();renderAll()});
+
+/* ---------- Fangdaten-Helfer ---------- */
+const catchesOf=e=>Array.isArray(e.catches)?e.catches:(e.count?Array.from({length:e.count},(_,i)=>({species:e.species,len:i===0?e.len:null})):[]);
+const countOf=e=>catchesOf(e).length;
+function snapshotTs(ts,ty,sp){const k=kOf(ts),mn=moon(ts),light=lightClass(ts);
+  if(k<12||k>=H.length)return {inRange:false,moon:mn.bucket,light};
+  const o=H[k];return {inRange:true,moon:mn.bucket,light,press:o.dp<-2?"fallend":o.dp>2?"steigend":"stabil",cloud:o.c>70?"bedeckt":o.c<30?"klar":"wechselnd",score:hasProfile(sp)?+hourScore(k,sp,ty).s.toFixed(1):null}}
+function bestLen(list,sp,exceptId){let b=0;list.forEach(e=>catchesOf(e).forEach(c=>{if(c.species===sp&&c.len&&c.id!==exceptId)b=Math.max(b,c.len)}));return b}
+function resizePhoto(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=()=>rej(new Error("read"));fr.onload=()=>{const img=new Image();img.onerror=()=>rej(new Error("img"));
+  img.onload=()=>{const max=900,sc=Math.min(1,max/Math.max(img.width,img.height)),cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);
+    cv.getContext("2d").drawImage(img,0,0,cv.width,cv.height);res(cv.toDataURL("image/jpeg",.72))};img.src=fr.result};fr.readAsDataURL(file)})}
+function thumb(c){const ph=photoOf(c);if(ph){const i=el("img","thumb");i.src=ph;i.alt="Foto "+(SPECIES[c.species]?spName(c.species):"Fang");return i}const d=el("div","thumb");d.append(svgIcon(IC.fish));return d}
+function speciesSelect(val){const b=el("button","sp-pick");b.type="button";const set=k=>{b.value=k;b.textContent=spName(k)};set(val&&SPECIES[val]?val:S.species);
+  b.addEventListener("click",()=>openSpeciesPicker(b.value,k=>{set(k);b.dispatchEvent(new Event("change"))}));return b}
+function openSpeciesPicker(cur,cb){lastFocus=document.activeElement;const M=$("#mcard");M.replaceChildren();
+  const hd=el("div","row between"),t=el("h2",null,"Fischart"),x=el("button","ghost","Schließen");t.id="mTitle";x.type="button";x.addEventListener("click",closeModal);hd.append(t,x);
+  const q=el("input");q.type="search";q.placeholder="Suche";q.setAttribute("aria-label","Fischart suchen");const L=el("div","splist");
+  const byName=(a,b)=>spName(a).localeCompare(spName(b),"de");
+  const draw=()=>{L.replaceChildren();const s=q.value.trim().toLowerCase();const match=k=>!s||spName(k).toLowerCase().includes(s)||(SPECIES[k].alias||"").toLowerCase().includes(s);
+    const sec=(title,keys)=>{keys=keys.filter(match);if(!keys.length)return;L.append(el("h3",null,title));keys.forEach(k=>{const r=el("button","sp-row"+(k===cur?" on":""),spName(k));r.type="button";
+      if(SPECIES[k].alias)r.append(el("small",null," · "+SPECIES[k].alias));r.addEventListener("click",()=>{closeModal();cb(k)});L.append(r)})};
+    const all=Object.keys(SPECIES).sort(byName);
+    if(s)sec("Treffer",all);else{sec("Meine Fische",S.favs.slice());sec("Süßwasser",all.filter(k=>(SPECIES[k].wg||"s")==="s"));sec("Meer",all.filter(k=>SPECIES[k].wg==="m"));sec("Krebse und Sonstiges",all.filter(k=>SPECIES[k].wg==="k"))}
+    if(!L.children.length)L.append(el("p","hint","Keine Art gefunden. Wähl „Sonstiges“."))};
+  q.addEventListener("input",draw);draw();M.append(hd,q,L);$("#modal").hidden=false;q.focus()}
+function photoPicker(cur,id,cb,label){const w=el("div","row");if(cur&&!label){const i=el("img","thumb");i.src=cur;i.alt="Foto";w.append(i)}
+  const lab=el("label","fileBtn");lab.append(svgIcon(IC.camera),document.createTextNode(label||(cur?"Foto ändern":"Foto hinzufügen")));
+  const inp=el("input");inp.type="file";inp.accept="image/*";inp.id=id;inp.setAttribute("aria-label",cur?"Foto ändern":"Foto hinzufügen");
+  inp.addEventListener("change",async()=>{const f=inp.files&&inp.files[0];if(!f)return;try{cb(await resizePhoto(f))}catch(e){flash("Das Foto konnte nicht gelesen werden. Versuch ein anderes Bild.")}});
+  lab.append(inp);w.append(lab);return w}
+function sortEntries(){S.entries.sort((a,b)=>((b.date||"")+(b.start||"")).localeCompare((a.date||"")+(a.start||"")))}
+const badgeIds=list=>computeBadges(list).filter(b=>b.on).map(b=>b.id);
+function flash(msg){const t=$("#cMsg");t.textContent=msg;clearTimeout(flash.t);flash.t=setTimeout(()=>{t.textContent=""},6000)}
+
+/* ---------- Live-Angeln ---------- */
+let catchDraft=null,addMode=false,addDraft=null,fbFor=null;
+const biss=n=>n+(n===1?" Biss":" Bisse");
+const dur=ms=>{const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h+":"+String(m).padStart(2,"0")+":"+String(x).padStart(2,"0")};
+function renderLive(){
+  const P=$("#livePanel");P.replaceChildren();const L=S.live;
+  if(!L){
+    if(addMode){P.append(nachtragForm());return}
+    const fe=fbFor&&S.entries.find(e=>e.id===fbFor);
+    if(fe&&!fe.fb){const fb=el("div","fb");fb.append(el("p",null,"Hat die Vorhersage gestimmt?"+(fe.wx&&fe.wx.score!=null?" Der Bisswert lag bei "+fmt1(fe.wx.score)+".":"")));
+      const r=el("div","row");[["ja","Ja"],["teils","Teilweise"],["nein","Nein"]].forEach(([v,t])=>{const b=el("button",null,t);b.type="button";b.addEventListener("click",()=>{const before=xpOf(S.entries);fe.fb=v;save();fbFor=null;flash("Danke! +2 Punkte. Das hilft dem Bisswert, von dir zu lernen.");rankCheck(before);renderLive()});r.append(b)});
+      const sk=el("button","ghost","Überspringen");sk.type="button";sk.addEventListener("click",()=>{fbFor=null;renderLive()});r.append(sk);fb.append(r);P.append(fb)}
+    P.append(el("h2",null,"Ans Wasser"));
+    const r=el("div","row"),l1=el("label","f","Gewässer"),s1=el("select");s1.id="lvWater";waterOptions(s1,S.selWater);l1.htmlFor="lvWater";l1.append(s1);
+    const l2=el("label","f","Zielfisch"),s2=speciesSelect(S.species);s2.id="lvSpecies";l2.htmlFor="lvSpecies";l2.append(s2);
+    r.append(l1,l2);P.append(r);
+    const go=el("button","primary go","Ich angle jetzt");go.type="button";
+    const rb=el("div");const upRule=()=>{rb.replaceChildren(ruleLine(s2.value,waterById(s1.value)).box);delete go.dataset.arm;go.textContent="Ich angle jetzt"};
+    s1.addEventListener("change",upRule);s2.addEventListener("change",upRule);upRule();P.append(rb);
+    const wh=el("p","hint"),t0=freshTurb(),wl=el("button","linkbtn",t0?"ändern":"Wasser-Check");wl.type="button";wl.addEventListener("click",openWaterCheck);
+    wh.append(document.createTextNode(t0?"Wasser: "+TURB[t0].n+" ("+turbAge()+") · ":"Wasser noch nicht geprüft · "),wl);P.append(wh);
+    go.addEventListener("click",()=>{if(!s1.value){flash("Lege zuerst ein Gewässer an.");return}
+      const R=ruleFor(s2.value,waterById(s1.value));if(R.closed&&!go.dataset.arm){go.dataset.arm="1";go.textContent="Verstanden, trotzdem starten";flash(spName(s2.value)+" ist geschont. Gefangene Fische sofort schonend zurücksetzen.");return}
+      const ft=freshTurb();const before=xpOf(S.entries);
+      S.live={start:Date.now(),wid:s1.value,species:s2.value,bites:[],catches:[],turb:ft,wcheck:!!ft};fbFor=null;save();renderLive();renderLivebar()});
+    const add=el("button","go","Angeltag nachtragen");add.type="button";add.addEventListener("click",()=>{addMode=true;renderLive()});
+    const br=el("div","btnrow");br.append(go,add);
+    P.append(br,el("p","hint","Live: Die App misst die Zeit mit, du tippst nur „Biss“ oder „Fisch gefangen“. Nachtragen: für Angeltage, die schon vorbei sind."));
+    return}
+  const w=waterById(L.wid)||{name:"Gewässer",type:"see"},now=Date.now();
+  const head=el("div","live-head");head.append(el("span","live-dot"),el("h3",null,"Du angelst · "+w.name+" · "+spName(L.species)));P.append(head);
+  const R=ruleFor(L.species,w);void 0;P.append(el("p",R.closed?"warn":"hint",R.closed?spName(L.species)+" ist geschont – Fänge sofort zurücksetzen.":R.mm?"Mindestmaß "+spName(L.species)+": "+R.mm+" cm":"Kein Mindestmaß für "+spName(L.species)));
+  const tm=el("div","timer",dur(now-L.start));tm.id="lvTimer";tm.setAttribute("aria-live","off");P.append(tm);
+  const sc=hasProfile(L.species)?fmt1(hourScore(kOf(now),L.species,w.type).s):"–";
+  const cs=el("div","counters");[["Bisse",L.bites.length],["Fische",L.catches.length],["Bisswert",sc]].forEach(([k,v])=>{const c=el("div","counter");c.append(el("div","v",String(v)),el("div","k",k));cs.append(c)});P.append(cs);
+  if(catchDraft){P.append(catchSheet(L));}
+  else{const a=el("div","actions"),b1=el("button","bite","Biss"),b2=el("button","primary","Fisch gefangen");b1.type=b2.type="button";
+    b1.addEventListener("click",()=>{L.bites.push(Date.now());save();flash("Biss notiert ("+L.bites.length+")");renderLive();renderLivebar()});
+    b2.addEventListener("click",()=>{catchDraft={species:L.species,len:"",bait:"",photo:null,lureId:lureById(S.lastLure)?S.lastLure:null};renderLive()});a.append(b1,b2);P.append(a)}
+  if(L.catches.length){const th=el("div","thumbs");L.catches.forEach(c=>th.append(thumb(c)));P.append(th)}
+  if(L.turb)P.append(el("p","hint","Wasser: "+TURB[L.turb].n));
+  const end=el("button",null,"Angeln beenden");end.type="button";armDelete(end,"Angeln beenden",finishLive);
+  const cancel=el("button","ghost","Verwerfen");cancel.type="button";armDelete(cancel,"Verwerfen",()=>{S.live=null;catchDraft=null;save();renderLive();renderLivebar()});
+  const r=el("div","row between");r.append(end,cancel);P.append(r);
+}
+function catchSheet(L){
+  const f=el("form","sheet");f.append(el("h2",null,"Fisch gefangen"));
+  const r1=el("div","row"),l1=el("label","f","Art"),s1=speciesSelect(catchDraft.species);s1.id="fcSp";l1.htmlFor="fcSp";l1.append(s1);
+  const l2=el("label","f","Länge (cm)"),i2=el("input");i2.id="fcLen";i2.type="number";i2.min="1";i2.max="300";i2.inputMode="numeric";i2.value=catchDraft.len;l2.htmlFor="fcLen";l2.append(i2);r1.append(l1,l2);
+  const l3=el("div");l3.style.cssText="display:flex;flex-direction:column;gap:6px";l3.append(el("span","flabel","Köder"));const strip=el("div","lure-strip");
+  const drawStrip=()=>{strip.replaceChildren();lureOrder().forEach(l=>{const b=el("button","lure-chip");b.type="button";b.setAttribute("aria-pressed",catchDraft.lureId===l.id?"true":"false");b.append(lureImg(l),el("span",null,l.name));
+      b.addEventListener("click",()=>{catchDraft.lureId=catchDraft.lureId===l.id?null:l.id;drawStrip()});strip.append(b)});
+    const nb=el("button","lure-chip add","+ Neuer Köder");nb.type="button";nb.addEventListener("click",()=>openLure(null,id=>{catchDraft.lureId=id;renderLive()}));strip.append(nb)};drawStrip();
+  const i3=el("input");i3.id="fcBait";i3.placeholder="oder Köder als Text";i3.setAttribute("aria-label","Köder als Text");i3.value=catchDraft.bait;l3.append(strip,i3);
+  const r2=el("div","row"),l4=el("label","f","Foto"),i4=el("input");i4.id="fcPhoto";i4.type="file";i4.accept="image/*";l4.htmlFor="fcPhoto";l4.append(i4);r2.append(l4);
+  const pv=el("img","preview");pv.alt="Vorschau";pv.hidden=!catchDraft.photo;if(catchDraft.photo)pv.src=catchDraft.photo;r2.append(pv);
+  const warnP=el("p","warn"),rel=el("label","chk"),relI=el("input");relI.type="checkbox";relI.id="fcRel";rel.htmlFor="fcRel";rel.append(relI,document.createTextNode("Zurückgesetzt"));
+  const updRule=()=>{const R=ruleFor(s1.value,waterById(L.wid)),len=+i2.value||0;let t="";
+    if(R.closed)t=R.year?spName(s1.value)+" ist hier ganzjährig geschont. Sofort schonend zurücksetzen.":"Schonzeit bis "+R.until+": sofort schonend zurücksetzen.";
+    else if(R.mm&&len&&len<R.mm)t="Untermaßig (Mindestmaß "+R.mm+" cm): sofort schonend zurücksetzen.";
+    else if(R.mm)t="";warnP.textContent=t;warnP.hidden=!t;if(t)relI.checked=true};
+  const pbInfo=el("p","hint");const upd=()=>{updRule();const best=bestLen(S.entries.concat([{catches:L.catches}]),s1.value);pbInfo.textContent=(best?"Dein PB "+spName(s1.value)+": "+best+" cm.":"Erster "+spName(s1.value)+" mit Länge wird dein PB.")+" Ohne Länge zählt der Fang nicht als PB."};upd();
+  s1.addEventListener("change",()=>{catchDraft.species=s1.value;upd()});i2.addEventListener("input",()=>{catchDraft.len=i2.value;updRule()});i3.addEventListener("input",()=>catchDraft.bait=i3.value);
+  i4.addEventListener("change",async()=>{const file=i4.files&&i4.files[0];if(!file)return;try{catchDraft.photo=await resizePhoto(file);pv.src=catchDraft.photo;pv.hidden=false}catch(e){pbInfo.textContent="Das Foto konnte nicht gelesen werden. Versuch ein anderes Bild."}});
+  const r3=el("div","row"),ok=el("button","primary","Fang speichern"),no=el("button","ghost","Abbrechen");ok.type="submit";no.type="button";r3.append(ok,no);
+  no.addEventListener("click",()=>{catchDraft=null;renderLive()});
+  f.addEventListener("submit",async e=>{e.preventDefault();const ts=Date.now(),w=waterById(L.wid)||{type:"see"};
+    const lu=lureById(catchDraft.lureId);
+    const c={id:"c"+ts.toString(36),ts,species:s1.value,len:i2.value?+i2.value:null,bait:lu?lu.name:i3.value.trim(),lureId:lu?lu.id:null,lureColor:lu?lu.color:null,released:relI.checked,score:hasProfile(s1.value)?+hourScore(kOf(ts),s1.value,w.type).s.toFixed(1):null};if(lu)S.lastLure=lu.id;
+    const photo=catchDraft.photo,best=bestLen(S.entries.concat([{catches:L.catches}]),c.species);
+    if(photo)await attachPhoto(c,photo);
+    L.catches.push(c);catchDraft=null;
+    if(!save()){delete c.photo;save();flash("Gespeichert, aber ohne Foto: Der Speicher ist voll.")}
+    else flash(c.len&&c.len>best?(best?"Neuer PB! "+spName(c.species)+" "+c.len+" cm (vorher "+best+" cm) · +15 Punkte":"Erster "+spName(c.species)+" im Buch: "+c.len+" cm"):"Petri Heil! Fang gespeichert.");
+    if(c.len&&c.len>best)celebrate("pb",{sp:c.species,len:c.len,prev:best});
+    renderLive();renderLivebar()});
+  f.append(r1,warnP,l3,r2,rel,pbInfo,r3);return f}
+function finishLive(){const L=S.live;if(!L)return;const w=waterById(L.wid)||{name:"Gewässer",type:"see"},p=bParts(L.start);
+  const before=xpOf(S.entries),bb=computeBadges(S.entries).filter(b=>b.on).map(b=>b.id);
+  const en={id:"e"+Date.now().toString(36),date:p.key,start:String(p.h).padStart(2,"0")+":"+p.mi,dur:Math.max(.1,Math.round((Date.now()-L.start)/36e4)/10),water:w.name,wid:L.wid,species:L.species,
+    bites:L.bites.length,catches:L.catches,live:true,wcheck:!!L.wcheck,wx:Object.assign(snapshotTs(L.start,w.type,L.species),L.turb?{turb:L.turb}:{})};
+  S.entries.unshift(en);sortEntries();S.live=null;catchDraft=null;save();
+  const nb=computeBadges(S.entries).filter(b=>b.on&&!bb.includes(b.id));
+  flash("Angeltag gespeichert: "+fmt1(en.dur)+" h, "+biss(en.bites)+", "+en.catches.length+" Fisch"+(en.catches.length===1?"":"e")+" · +"+(xpOf(S.entries)-before)+" Punkte"+(nb.length?" · Abzeichen: "+nb.map(b=>b.n).join(", "):""));
+  fbFor=en.id;if(nb.length)$("#newDot").hidden=false;rankCheck(before);renderLive();renderLivebar();renderFangbuch()}
+function renderLivebar(){const L=S.live,bar=$("#livebar");bar.hidden=!L||currentTab()==="fangbuch";if(!L)return;
+  $("#livebarTxt").textContent="Du angelst seit "+dur(Date.now()-L.start).slice(0,-3)+" h · "+biss(L.bites.length)+" · "+L.catches.length+" Fisch"+(L.catches.length===1?"":"e")}
+setInterval(()=>{if(!S.live)return;const t=$("#lvTimer");if(t)t.textContent=dur(Date.now()-S.live.start);renderLivebar()},1000);
+
+/* ---------- Fangbuch ---------- */
+function nachtragForm(){
+  if(!addDraft)addDraft={date:np.key,start:"06:00",dur:"3",wid:S.selWater,species:S.species,bites:0,fish:[]};
+  const A=addDraft,f=el("form");f.style.cssText="display:flex;flex-direction:column;gap:12px";
+  const field=(lab,id,inp,cls)=>{const l=el("label","f"+(cls?" "+cls:""),lab);l.htmlFor=id;inp.id=id;l.append(inp);return l};
+  const inp=(type,val,at)=>{const i=el("input");i.type=type;i.value=val;Object.entries(at||{}).forEach(([k,v])=>i.setAttribute(k,v));return i};
+  const hd=el("div","row between"),x=el("button","ghost","Schließen");x.type="button";x.addEventListener("click",()=>{addMode=false;addDraft=null;renderLive()});
+  hd.append(el("h2",null,"Angeltag nachtragen"),x);f.append(hd);
+  const g1=el("div","grp"),r1=el("div","row");g1.append(el("h3",null,"Wann"));
+  const iD=inp("date",A.date,{required:""}),iS=inp("time",A.start,{required:""}),iU=inp("number",A.dur,{min:"0.5",max:"24",step:"0.5",required:""});
+  iD.addEventListener("input",()=>A.date=iD.value);iS.addEventListener("input",()=>A.start=iS.value);iU.addEventListener("input",()=>A.dur=iU.value);
+  r1.append(field("Datum","nDate",iD),field("Beginn","nStart",iS),field("Dauer (h)","nDur",iU));g1.append(r1);f.append(g1);
+  const g2=el("div","grp"),r2=el("div","row");g2.append(el("h3",null,"Wo und worauf"));
+  const sW=el("select");waterOptions(sW,A.wid);A.wid=sW.value;sW.addEventListener("change",()=>A.wid=sW.value);
+  const sS=speciesSelect(A.species);sS.addEventListener("change",()=>A.species=sS.value);
+  const sT=el("select");sT.add(new Option("Weiß ich nicht",""));Object.entries(TURB).forEach(([k,v])=>sT.add(new Option(v.n+" ("+v.d+")",k)));sT.value=A.turb||"";sT.addEventListener("change",()=>A.turb=sT.value);
+  r2.append(field("Gewässer","nWater",sW),field("Zielfisch","nSp",sS),field("Wasser","nTurb",sT));g2.append(r2);f.append(g2);
+  const g3=el("div","grp");g3.append(el("h3",null,"Ergebnis"));
+  const st=el("div","stepper"),mi=el("button",null,"−"),pl=el("button",null,"+"),val=el("span",null,String(A.bites));mi.type=pl.type="button";
+  mi.setAttribute("aria-label","Ein Biss weniger");pl.setAttribute("aria-label","Ein Biss mehr");
+  mi.addEventListener("click",()=>{A.bites=Math.max(0,A.bites-1);val.textContent=A.bites});pl.addEventListener("click",()=>{A.bites++;val.textContent=A.bites});
+  st.append(mi,val,pl);const bl=el("div","row between");bl.append(el("span",null,"Bisse"),st);g3.append(bl);
+  A.fish.forEach((fi,idx)=>{const r=el("div","fishrow"),sp=speciesSelect(fi.species),ln=inp("number",fi.len,{min:"1",max:"300",inputmode:"numeric",placeholder:"cm"});
+    sp.addEventListener("change",()=>fi.species=sp.value);ln.addEventListener("input",()=>fi.len=ln.value);
+    const rm=el("button","ghost danger","Entfernen");rm.type="button";rm.addEventListener("click",()=>{A.fish.splice(idx,1);renderLive()});
+    const lsel=el("select");lsel.add(new Option("Kein Köder",""));lureOrder().forEach(l=>lsel.add(new Option(l.name,l.id)));lsel.value=fi.lureId||"";lsel.addEventListener("change",()=>fi.lureId=lsel.value);
+    const bot=el("div","row between");bot.style.flex="1 1 100%";bot.append(photoPicker(fi.photo,"nfP"+idx,d=>{fi.photo=d;renderLive()}),rm);
+    r.append(field("Fisch "+(idx+1),"nfS"+idx,sp),field("Länge (cm)","nfL"+idx,ln,"len"),field("Köder","nfK"+idx,lsel),bot);g3.append(r)});
+  const addF=el("button",null,A.fish.length?"+ Weiteren Fisch":"+ Fisch hinzufügen");addF.type="button";
+  addF.addEventListener("click",()=>{A.fish.push({species:A.species,len:"",photo:null,lureId:lureById(S.lastLure)?S.lastLure:""});renderLive()});g3.append(addF);
+  g3.append(el("p","hint",A.fish.length?"Mit Länge kann der Fisch dein PB werden.":"Ohne Fisch wird es ein Schneidertag. Die zählen extra (+15 Punkte)."));
+  f.append(g3);
+  const ok=el("button","primary go","Angeltag speichern");ok.type="submit";f.append(ok);
+  f.addEventListener("submit",e=>{e.preventDefault();saveNachtrag()});return f}
+async function saveNachtrag(){const A=addDraft,w=waterById(A.wid);if(!w){flash("Lege zuerst ein Gewässer an.");return}
+  const before=xpOf(S.entries),bb=badgeIds(S.entries);
+  const [y,m,d]=A.date.split("-").map(Number),hh=+(A.start||"06").split(":")[0],ts=Date.UTC(y,m-1,d,hh)-offH*36e5,snap=snapshotTs(ts,w.type,A.species);
+  const catches=[],pbs=[];
+  const cel=[];
+  for(let i=0;i<A.fish.length;i++){const fi=A.fish[i],lu=lureById(fi.lureId),c={id:"c"+Date.now().toString(36)+i,ts,species:fi.species,len:fi.len?+fi.len:null,score:hasProfile(fi.species)?snap.score||null:null,bait:lu?lu.name:"",lureId:lu?lu.id:null,lureColor:lu?lu.color:null};
+    const best=bestLen(S.entries.concat([{catches}]),c.species);if(c.len&&c.len>best){pbs.push(spName(c.species)+" "+c.len+" cm");cel.push({sp:c.species,len:c.len,prev:best})}
+    if(fi.photo)await attachPhoto(c,fi.photo);catches.push(c)}
+  S.entries.unshift({id:"e"+Date.now().toString(36),date:A.date,start:A.start,dur:+A.dur||1,water:w.name,wid:w.id,species:A.species,bites:A.bites,catches,wx:Object.assign(snap,A.turb?{turb:A.turb}:{})});sortEntries();
+  if(!save()){catches.forEach(c=>delete c.photo);save()}
+  addMode=false;addDraft=null;const nb=computeBadges(S.entries).filter(b=>b.on&&!bb.includes(b.id));
+  flash("Angeltag gespeichert · +"+(xpOf(S.entries)-before)+" Punkte"+(pbs.length?" · PB: "+pbs.join(", "):"")+(catches.length?"":" · Schneidertag zählt extra")+(nb.length?" · Abzeichen: "+nb.map(b=>b.n).join(", "):""));
+  cel.forEach(x=>celebrate("pb",x));rankCheck(before);if(nb.length)$("#newDot").hidden=false;renderLive();renderFangbuch();window.scrollTo({top:0})}
+function renderFangbuch(){const L=$("#entryList");L.replaceChildren();$("#eCount").textContent=S.entries.length+" Angeltage";
+  if(!S.entries.length){L.append(el("p","hint","Noch keine Einträge. Tipp oben auf „Ich angle jetzt“, wenn du am Wasser bist."));return}
+  const pbIds=new Set();Object.keys(SPECIES).forEach(sp=>{let b=null;S.entries.forEach(e=>catchesOf(e).forEach(c=>{if(c.species===sp&&c.len&&(!b||c.len>b.len))b=c}));if(b&&b.id)pbIds.add(b.id)});
+  S.entries.forEach(en=>{const it=el("div","item"),m=el("div","main"),cs=catchesOf(en),dt=new Date(en.date+"T12:00:00");
+    m.append(el("div",null,dt.toLocaleDateString("de-DE",{day:"numeric",month:"short"})+" · "+en.water));
+    const spn=[...new Set(cs.map(c=>spName(c.species)))];const bits=[spn.length?spn.join(", "):spName(en.species),fmt1(en.dur)+" h"];if(en.bites)bits.push(biss(en.bites));const lens=cs.filter(c=>c.len).map(c=>c.len+" cm");if(lens.length)bits.push(lens.join(", "));
+    m.append(el("div",null,bits.join(" · ")));
+    const withPhoto=cs.find(c=>photoOf(c));if(withPhoto)it.append(thumb(withPhoto));
+    it.append(m);
+    if(cs.some(c=>pbIds.has(c.id)))it.append(el("span","chip pb","PB"));
+    it.append(el("span","chip"+(cs.length?"":" zero"),cs.length?cs.length+" Fisch"+(cs.length>1?"e":""):"Schneider"));
+    const del=el("button","ghost danger","Löschen");del.type="button";armDelete(del,"Löschen",()=>{cs.forEach(c=>delPhoto(c.photoId));S.entries=S.entries.filter(x=>x.id!==en.id);save();renderFangbuch()});it.append(del);L.append(it)})}
+
+/* ---------- Gamification ---------- */
+const RANKS=[[0,"Wurmbader"],[100,"Stippfischer"],[250,"Uferläufer"],[500,"Petrijünger"],[900,"Gewässerkenner"],[1500,"Uferprofi"],[2400,"Fischflüsterer"],[3600,"Wetterversteher"],[5000,"Altmeister"],[7000,"Petri-Legende"]];
+const rankOf=xp=>{let i=0;RANKS.forEach((r,j)=>{if(xp>=r[0])i=j});return {i,name:RANKS[i][1]}};
+function xpOf(list){const chron=list.slice().reverse();let xp=0;const seenSp=new Set(),best={};
+  chron.forEach(e=>{const cs=catchesOf(e);xp+=cs.length?10:15;if(e.live)xp+=5;if(e.wcheck)xp+=3;if(e.fb)xp+=2;
+    cs.forEach(c=>{if(c.bait||c.lureId)xp+=2;if(c.photoId||c.photo)xp+=2;if(!seenSp.has(c.species)){seenSp.add(c.species);xp+=25}
+      if(c.len){if(best[c.species]&&c.len>best[c.species])xp+=15;best[c.species]=Math.max(best[c.species]||0,c.len)}});
+    if(cs.some(c=>(c.score||(e.wx&&e.wx.score)||0)>=7))xp+=20});
+  if(list===S.entries)xp+=(S.lures||[]).filter(l=>l.photoId||l.photo).length*2;return xp}
+function rankCheck(before){const a=rankOf(before),x=xpOf(S.entries),b=rankOf(x);if(b.i>a.i)celebrate("rank",{i:b.i,name:b.name,xp:x})}
+function computeBadges(list){const n=list.length,zero=list.filter(e=>!countOf(e)).length,dawn=list.filter(e=>e.wx&&e.wx.light==="dawn").length,night=list.filter(e=>e.wx&&e.wx.light==="night").length;
+  const sp=new Set();list.forEach(e=>catchesOf(e).forEach(c=>sp.add(c.species)));
+  const hit=list.reduce((a,e)=>a+catchesOf(e).filter(c=>(c.score||(e.wx&&e.wx.score)||0)>=7).length,0);
+  const byW={};list.forEach(e=>byW[e.water]=(byW[e.water]||0)+1);const stamm=Math.max(0,...Object.values(byW)),diffW=Object.keys(byW).length;
+  const bites=list.reduce((a,e)=>a+(e.bites||0),0),photos=list.reduce((a,e)=>a+catchesOf(e).filter(c=>c.photoId||c.photo).length,0);
+  const lurePh=list===S.entries?(S.lures||[]).filter(l=>l.photoId).length:0,lureSet=new Set();list.forEach(e=>catchesOf(e).forEach(c=>{const k=c.lureId||c.bait;if(k)lureSet.add(k)}));
+  return [
+    {id:"first",n:"Erster Wurf",d:"Ersten Angeltag eingetragen",ic:"hook",v:n,goal:1},
+    {id:"honest",n:"Ehrlicher Angler",d:"5 Schneidertage eingetragen",ic:"check",v:zero,goal:5},
+    {id:"dawn",n:"Frühaufsteher",d:"5× in der Dämmerung",ic:"dawn",v:dawn,goal:5},
+    {id:"night",n:"Nachteule",d:"5× nachts am Wasser",ic:"moon",v:night,goal:5},
+    {id:"species",n:"Artenkenner",d:"3 Fischarten gefangen",ic:"fish",v:sp.size,goal:3},
+    {id:"hit",n:"Treffsicher",d:"3 Fänge im Alarm-Fenster",ic:"target",v:hit,goal:3},
+    {id:"bites",n:"Bissanzeiger",d:"50 Bisse protokolliert",ic:"bell",v:bites,goal:50},
+    {id:"photo",n:"Fotobeweis",d:"10 Fänge mit Foto",ic:"camera",v:photos,goal:10},
+    {id:"farben",n:"Farbenlehre",d:"10 Köder fotografiert",ic:"camera",v:lurePh,goal:10},
+    {id:"koeder",n:"Köderflüsterer",d:"Mit 5 verschiedenen Ködern gefangen",ic:"hook",v:lureSet.size,goal:5},
+    {id:"stamm",n:"Stammgast",d:"10× am selben Gewässer",ic:"pin",v:stamm,goal:10},
+    {id:"explore",n:"Entdecker",d:"5 verschiedene Gewässer",ic:"map",v:diffW,goal:5},
+    {id:"myth",n:"Mythenjäger",d:"20 Angeltage – Mythen-Check frei",ic:"lens",v:n,goal:20}
+  ].map(b=>Object.assign(b,{on:b.v>=b.goal}))}
+
+let demo=false;
+function demoData(){let s2=42;const r=()=>{s2=(s2*16807)%2147483647;return (s2-1)/2147483646};const out=[];
+  const P=["fallend","stabil","steigend"],M=["Neumond","zunehmend","Vollmond","abnehmend"],L=["dawn","day","night"],C=["klar","wechselnd","bedeckt"],SP=["zander","zander","hecht","barsch","zander","aal"],W=["Elbe","Kiesgrube","Elbe","Dorfteich","Elbe","Talsperre"];
+  const base={zander:45,hecht:55,barsch:22,aal:55};
+  for(let i=0;i<60;i++){const press=P[Math.floor(r()*3)],light=L[Math.floor(r()*3)],cloud=C[Math.floor(r()*3)],mo=M[Math.floor(r()*4)],sp=SP[Math.floor(r()*SP.length)];
+    const TB=["klar","leicht","leicht","trueb","braun"],turb=TB[Math.floor(r()*TB.length)];
+    const BAIT={klar:[["Gummifisch Barsch-Dekor","natur"],["Wobbler Rotauge","weissfisch"]],leicht:[["Gummifisch weiß","weiss"],["Gummifisch weiß","weiss"],["Spinner silber","weissfisch"]],trueb:[["Gummifisch chartreuse","chartreuse"],["Gummifisch chartreuse","chartreuse"],["Wobbler Firetiger","firetiger"]],braun:[["Spinner gold","gold"],["Gummifisch orange","orange"]]}[turb];
+    const d=2+Math.floor(r()*4),rate=.33*(press==="fallend"?1.7:press==="steigend"?.6:1)*(light==="dawn"?1.6:light==="night"?.9:.8)*(cloud==="bedeckt"?1.2:1)*(sp==="zander"&&turb==="trueb"?1.4:1);
+    const cs=[];let bites=0;for(let h=0;h<d;h++){if(r()<rate*1.8)bites++;if(r()<rate)cs.push({id:"d"+i+"_"+h,species:sp,len:Math.round(base[sp]+r()*28),...(()=>{const b=BAIT[Math.floor(r()*BAIT.length)];return {bait:b[0],lureColor:b[1]}})(),score:+(3.5+r()*5.5).toFixed(1)})}
+    const day=new Date(Date.UTC(2025,3,1)+i*7*864e5);
+    out.push({id:"d"+i,date:day.toISOString().slice(0,10),species:sp,water:W[Math.floor(r()*W.length)]+" (Beispiel)",dur:d,bites:Math.max(bites,cs.length),catches:cs,live:r()<.6,wx:{inRange:true,press,light,cloud,moon:mo,turb}})}
+  return out.reverse()}
+$("#demoBtn").addEventListener("click",()=>{demo=!demo;renderErfolge()});
+
+function speciesCatches(k,list){const all=[];list.forEach(e=>catchesOf(e).forEach(c=>{if(c.species===k)all.push({c,e})}));
+  all.sort((a,b)=>(b.c.len||0)-(a.c.len||0)||(photoOf(b.c)?1:0)-(photoOf(a.c)?1:0));return all}
+let lastFocus=null;
+function closeModal(){$("#modal").hidden=true;$("#mcard").replaceChildren();if(lastFocus&&lastFocus.isConnected)lastFocus.focus()}
+$("#modal").addEventListener("click",e=>{if(e.target.id==="modal")closeModal()});
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#modal").hidden)closeModal()});
+function wxRows(c,e,k){const w=waterById(e.wid)||{type:"see"};
+  if(c.ts){const kk=kOf(c.ts);if(kk>=12&&kk<H.length){const o=H[kk],dp=o.dp,lc=lightClass(c.ts);
+    return [["Bisswert",c.score!=null?fmt1(c.score):fmt1(hourScore(kk,k,w.type).s)],["Licht",lc==="dawn"?"Dämmerung":lc==="day"?"Tag":"Nacht"],
+      ["Bewölkung",Math.round(o.c)+" %"],["Wind",Math.round(o.w)+" km/h"],["Luftdruck",Math.round(o.p)+" hPa, "+(dp<-2?"fallend":dp>2?"steigend":"stabil")],
+      ["Wasser (gesch.)",fmt1(waterTemp(w.type,kk))+" °C"],["Luft",fmt1(o.t)+" °C"],["Mond",moon(c.ts).name]]}}
+  const x=e.wx||{};return [["Bisswert",c.score!=null?fmt1(c.score):"–"],["Licht",{dawn:"Dämmerung",day:"Tag",night:"Nacht"}[x.light]||"–"],["Bewölkung",x.cloud||"–"],["Luftdruck",x.press||"–"],["Mond",x.moon||"–"]]}
+function factGrid(rows){const g=el("div","facts");rows.forEach(([k,v])=>{const f=el("div","fact");f.append(el("div","k",k),el("div","v small",v));g.append(f)});return g}
+function openDetail(k,pbList){const all=speciesCatches(k,pbList);if(!all.length)return;const {c,e}=all[0],M=$("#mcard");M.replaceChildren();
+  lastFocus=document.activeElement;
+  const hd=el("div","row between"),t=el("h2",null,"PB "+spName(k)),x=el("button","ghost","Schließen");t.id="mTitle";x.type="button";x.addEventListener("click",closeModal);hd.append(t,x);M.append(hd);
+  const pic=photoOf(c);if(pic){const im=el("img","mphoto");im.src=pic;im.alt=spName(k)+(c.len?", "+c.len+" cm":"");M.append(im)}else{const ph=el("div","mphoto");ph.append(svgIcon(IC.fish));M.append(ph)}
+  if(!demo)M.append(photoPicker(pic,"mPhoto",async d=>{await attachPhoto(c,d);if(!save()){delete c.photo;flash("Foto konnte nicht gespeichert werden: Speicher voll.")}openDetail(k,pbList);renderErfolge();renderFangbuch()},pic?"Foto ändern":"Foto hinzufügen"));
+  const big=el("div","mlen",c.len?String(c.len):"Länge fehlt");if(c.len)big.append(el("small",null," cm"));else big.classList.add("nolen");M.append(big);
+  const d=e.date?new Date(e.date+"T12:00:00").toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"long",year:"numeric"}):"–";
+  M.append(factGrid([["Datum",d],["Uhrzeit",c.ts?timeFmt.format(c.ts)+" Uhr":(e.start?e.start+" Uhr":"–")],["Gewässer",e.water||"–"],["Köder",c.bait||"–"],
+    ["Angeltag",e.running?"läuft gerade":fmt1(e.dur||0)+" h"+(e.bites?", "+biss(e.bites):"")],["Fänge an dem Tag",String(catchesOf(e).length)]]));
+  M.append(el("h3",null,"Bedingungen beim Fang"),factGrid(wxRows(c,e,k)));
+  if(all.length>1){M.append(el("h3",null,"Deine Top "+Math.min(5,all.length)+" "+spName(k)));const L=el("div","list");
+    all.slice(0,5).forEach(({c:cc,e:ee},i)=>{const it=el("div","item");it.append(thumb(cc));const m=el("div","main");
+      m.append(el("div",null,cc.len?cc.len+" cm":"ohne Länge"),el("div",null,[ee.date?new Date(ee.date+"T12:00:00").toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}):"",ee.water].filter(Boolean).join(" · ")));
+      it.append(m);if(i===0)it.append(el("span","chip pb","PB"));L.append(it)});M.append(L)}
+  $("#modal").hidden=false;x.focus()}
+/* Beispiel-Dekore: Nays VNM (Codes laut Hersteller, Farben nach Herstellerbeschreibung, Zeichnung eigen) */
+const NAYS_URL="https://naysbaits.com/en-us/collections/softbaits/products/vnm";
+const NAYS={C01:["Oliv, hellgrauer Bauch","#6b6f3a","#c9cbc4",null],C02:["Motoröl, hellblauer Glitter","#6a5a2a","#8f7d45","#9fd3ff"],C04:["Schwarz, Blau- und Goldglitter","#1b1d22","#2b2e35","#e2c056"],
+  C05:["Dunkelgrün, hellgrüner Bauch","#2f5a32","#a6d08a",null],C06:["Gold-Orange, heller Bauch, Glitter","#e08a1e","#f6e3b8","#fff2b0"],C07:["Gelbgrün (Chartreuse)","#c6e81c","#e8f7a8","#2a2a2a"],
+  C12:["Hellblau, weißer Bauch, Goldglitter","#8fb8d8","#f4f6f8","#e2c056"],C13:["Rotbraun, roter Glitter","#8a3a25","#c9a07a","#e04a3a"],C14:["Braungrau, Silberglitter","#6e6658","#d6d6d2","#eef3f6"]};
+const TURB_TIPS={
+  klar:{nays:["C01","C14","C05"],dekor:"Natürliche Dekore wie Oliv, Braungrau oder Barsch-Grün, wenig Glitter. Eher kleiner und schlanker Köder.",
+    tun:["Fische sehen gut und sind vorsichtiger: feines Vorfach (Fluorocarbon), weiter werfen.","Bei Sonne tiefer oder im Schatten fischen, Dämmerung nutzen."]},
+  leicht:{nays:["C12","C02","C07"],dekor:"Helle Grundfarbe mit Kontrastbauch oder Motoröl mit Glitter. Normale Ködergröße.",
+    tun:["Gute Bedingungen: Fische sind weniger scheu als bei klarem Wasser.","Verschiedene Farben durchprobieren, die Bandbreite ist groß."]},
+  trueb:{nays:["C07","C06","C04"],dekor:"Grell (Chartreuse, Orange) oder ganz Schwarz als Silhouette. Etwas größer, mit großem Schaufelschwanz für viel Druckwelle.",
+    tun:["Langsamer führen und nah am Grund bleiben, der Fisch findet den Köder über die Seitenlinie.","Rassel, Spinnerblatt oder Lockstoff helfen jetzt mehr als die Farbe.","Nach Hochwasser: ruhige Bereiche hinter Buhnen und Kehrwasser absuchen."]},
+  braun:{nays:["C06","C13","C07"],dekor:"Gold, Kupfer, Orange und Rotbraun. Glitter fängt das wenige Licht.",
+    tun:["Im dunklen Wasser lieber etwas flacher fischen, dort kommt mehr Licht hin.","Druckwelle und Vibration zählen mehr als Feinheiten im Dekor."]}};
+let shadN=0;
+function shadSvg(code){const [,b,u,g]=NAYS[code],id="sh"+(shadN++),NS="http://www.w3.org/2000/svg",sv=document.createElementNS(NS,"svg");sv.setAttribute("viewBox","0 0 120 40");sv.setAttribute("class","shad");sv.setAttribute("aria-hidden","true");
+  const body="M6 20C6 11 18 7 34 7c20 0 40 5 56 10h10v6H90C74 28 54 33 34 33 18 33 6 29 6 20z";
+  let h='<defs><clipPath id="'+id+'"><rect x="0" y="21" width="120" height="20"/></clipPath></defs><ellipse cx="106" cy="20" rx="6" ry="13" fill="'+b+'"/><path d="'+body+'" fill="'+b+'"/><path d="'+body+'" fill="'+u+'" clip-path="url(#'+id+')"/>';
+  if(g)[[30,13],[44,12],[58,14],[70,16],[38,17],[52,18],[64,19],[80,18],[26,16]].forEach(([x,y])=>h+='<circle cx="'+x+'" cy="'+y+'" r="1.2" fill="'+g+'"/>');
+  h+='<path d="M48 9v22M60 11v19M72 14v13" stroke="#000" stroke-opacity=".12" stroke-width="1.5"/><circle cx="17" cy="18" r="3.4" fill="#fff"/><circle cx="17.6" cy="18" r="1.8" fill="#111"/>';sv.innerHTML=h;return sv}
+let wcState={turb:null,photo:null,auto:null};
+function openWaterCheck(){showTab&&showTab("gewaesser");const p=$("#wcPanel");p&&p.scrollIntoView({behavior:"smooth",block:"start"})}
+function setTurb(v){wcState.turb=v;S.turb={v,ts:Date.now()};if(S.live){S.live.turb=v;S.live.wcheck=true}save();renderWaterCheck();renderLive()}
+function renderWaterCheck(){const M=$("#wcPanel");if(!M)return;const A=wcState;if(!A.turb)A.turb=freshTurb();M.replaceChildren();
+  const hd=el("div","row between");hd.append(el("h2",null,"Wasser-Check"),el("span","hint",S.turb&&freshTurb()?"gemerkt "+turbAge():"für alle Gewässer"));M.append(hd);
+  M.append(el("p","hint","Wie trüb ist das Wasser heute? Wähl selbst oder fotografier schräg von oben ins flache Uferwasser."));
+  const pk=el("div","picks");
+  Object.entries(TURB).forEach(([k,v])=>{const b=el("button",null,v.n);b.append(el("small",null,v.d));b.type="button";b.setAttribute("aria-pressed",A.turb===k?"true":"false");b.addEventListener("click",()=>setTurb(k));pk.append(b)});M.append(pk);
+  const ph=el("details");ph.append(el("summary",null,A.photo?"Foto vom Wasser":"Per Foto erkennen"));if(A.photo){ph.open=true;const im=el("img","wcphoto");im.src=A.photo;im.alt="Foto vom Wasser";ph.append(im)}
+  ph.append(photoPicker(null,"wcPhoto",async d=>{A.photo=d;const a=await analyzeWater(d);A.auto=a;if(a)setTurb(a.turb);else renderWaterCheck()},A.photo?"Anderes Foto":"Foto machen"));
+  if(A.auto)ph.append(el("p",null,"Erkannt: "+A.auto.why+" → "+TURB[A.auto.turb].n+". Stimmt nicht? Wähl oben selbst."));
+  else if(A.photo)ph.append(el("p","warn","Das Foto konnte nicht ausgewertet werden. Wähl die Trübung bitte selbst."));M.append(ph);
+  if(!A.turb)return;
+  const adv=lureAdvice(A.turb,lightClass(Date.now())),T=TURB_TIPS[A.turb],night=["night","dawn"].includes(lightClass(Date.now()));
+  M.append(el("h3",null,"Köderfarben für jetzt"));
+  const sw=el("div","swatches");adv.cols.forEach(c=>{const d=el("div","sw"),i=el("i");i.style.background=LURE[c][1];d.append(i,document.createTextNode(LURE[c][0]));sw.append(d)});M.append(sw);
+  M.append(el("p",null,adv.why));
+  M.append(el("h3",null,"Dekor"));M.append(el("p",null,T.dekor));
+  const codes=(night?["C04"]:[]).concat(T.nays).filter((c,i,a)=>a.indexOf(c)===i).slice(0,3);
+  const grid=el("div","nays");codes.forEach(c=>{const d=el("div","ncard");d.append(shadSvg(c),el("b",null,"Nays VNM "+c.replace("C","C-")),el("span",null,NAYS[c][0]));grid.append(d)});M.append(grid);
+  const nl=el("p","hint");nl.append(document.createTextNode("Beispiele von Nays, Codes laut Hersteller. Zeichnung von uns, die echten Farben weichen ab. Auswahl nach den Faustregeln oben, keine Empfehlung von Nays. "));
+  const a=el("a",null,"Dekore bei Nays ansehen");a.href=NAYS_URL;a.target="_blank";a.rel="noopener";nl.append(a);M.append(nl);
+  M.append(el("h3",null,"So fischst du jetzt"));const ul=el("ul","why");T.tun.concat(adv.tips).forEach(tx=>ul.append(el("li",null,tx)));M.append(ul);
+  const fit=S.lures.filter(l=>adv.cols.includes(l.color));
+  if(fit.length){M.append(el("h3",null,"Passt jetzt aus deiner Köderbox"));const st=el("div","lure-strip");fit.forEach(l=>{const c=el("div","lure-chip");c.append(lureImg(l),el("span",null,l.name));st.append(c)});M.append(st)}
+  const ci=colorInsight(A.turb,S.entries,null),bi=baitInsight(A.turb,null,S.entries);
+  if(ci||bi){const lb=el("div","learn");lb.append(el("h3",null,"Bei dir"));if(ci)lb.append(el("p",null,"Bei „"+TURB[A.turb].n+"“ kamen "+ci.n+" von "+ci.tot+" Fängen auf "+LURE[ci.color][0]+"."));
+    else lb.append(el("p",null,"Bei „"+TURB[A.turb].n+"“ hast du am häufigsten mit „"+bi.bait+"“ gefangen ("+bi.n+" Fänge)."));
+    lb.append(el("p","hint","Zeigt, womit du gefangen hast, nicht welche Farbe besser ist: Was man oft fischt, fängt auch öfter."));M.append(lb)}
+  M.append(el("p","hint","Gilt 2 Tage für alle Gewässer und wird beim Angeln automatisch übernommen. Faustregeln aus der Angelpraxis, keine Garantie."))}
+function renderErfolge(){
+  const list=demo?demoData():S.entries;
+  $("#demoBtn").textContent=demo?"Zurück zu meinen Daten":"Mit Beispieldaten ansehen";
+  $("#demoLbl").textContent=demo?"Beispiel: 60 erfundene Angeltage":"";
+  const xp=xpOf(list);let ri=0;RANKS.forEach((r,i)=>{if(xp>=r[0])ri=i});const nxt=RANKS[ri+1];
+  const rb=$("#rankBox");rb.replaceChildren();const g=el("div","rank"),big=el("div","badge-big",String(ri+1)),t=el("div");
+  t.append(el("h3",null,"Rang "+(ri+1)+" von "+RANKS.length),el("div","name",RANKS[ri][1]));
+  const bar=el("div","xp"),i=el("i");i.style.width=(nxt?(xp-RANKS[ri][0])/(nxt[0]-RANKS[ri][0])*100:100)+"%";bar.append(i);t.append(bar);
+  t.append(el("p","hint mono",xp+" Punkte"+(nxt?" · noch "+(nxt[0]-xp)+" bis „"+nxt[1]+"“":" · höchster Rang")));g.append(big,t);rb.append(g);
+  rb.append(el("p","hint","Punkte gibt es fürs Eintragen, nicht für die Menge Fisch: Angeltag 10, Schneidertag 15, live geloggt +5, Wasser-Check +3, Köder eingetragen +2, Köder fotografiert +2, Fangfoto +2, Prognose bewertet +2, neue Art 25, Fang im Alarm-Fenster 20, neuer PB 15."));
+  // PBs: nur gefangene Arten, inkl. laufender Session
+  const pb=$("#pbs");pb.replaceChildren();
+  const liveE=!demo&&S.live?{date:bParts(S.live.start).key,water:(waterById(S.live.wid)||{}).name||"",wid:S.live.wid,catches:S.live.catches,running:true}:null;
+  const pbList=liveE?list.concat([liveE]):list;
+  const cards=Object.keys(SPECIES).map(k=>{const all=speciesCatches(k,pbList);return all.length?{k,top:all[0],n:all.length}:null}).filter(Boolean)
+    .sort((a,b)=>(b.top.c.len||0)-(a.top.c.len||0));
+  if(!cards.length)pb.append(el("p","hint","Noch kein Fisch im Buch. Sobald du einen Fang einträgst, erscheint hier dein PB für diese Art."));
+  cards.forEach(({k,top,n})=>{const {c,e}=top,card=el("button","pb"),ph=el("div","ph"),pic=photoOf(c);card.type="button";
+    card.setAttribute("aria-label","PB "+spName(k)+(c.len?", "+c.len+" cm":"")+". Details öffnen");
+    if(pic){const im=el("img");im.src=pic;im.alt="";ph.append(im)}else ph.append(svgIcon(IC.fish));
+    const tx=el("div","tx");tx.append(el("span","sp",spName(k)));
+    if(c.len){const len=el("span","len",String(c.len));len.append(el("small",null," cm"));tx.append(len)}else tx.append(el("span","len nolen","Länge fehlt"));
+    const dt=e.date?new Date(e.date+"T12:00:00").toLocaleDateString("de-DE",{day:"numeric",month:"short",year:"numeric"}):"";
+    tx.append(el("span","meta",[dt,e.water,e.running?"läuft gerade":"",n>1?n+" Fänge":""].filter(Boolean).join(" · ")));
+    card.append(ph,tx);card.addEventListener("click",()=>openDetail(k,pbList));pb.append(card)});
+  // Abzeichen
+  const bx=$("#badges");bx.replaceChildren();computeBadges(list).forEach(b=>{const c=el("div","bd"+(b.on?" on":"")),ic=el("div","ic");ic.append(svgIcon(IC[b.ic]));
+    c.append(ic,el("div","n",b.n),el("div","d",b.d));if(!b.on)c.append(el("div","pr",Math.min(b.v,b.goal)+"/"+b.goal));bx.append(c)});
+  renderMyth(list);
+  const KB=$("#baitOut");KB.replaceChildren();let any=false;
+  Object.entries(TURB).forEach(([k,v])=>{const ci=colorInsight(k,list,null),bi=baitInsight(k,null,list);if(!ci&&!bi)return;any=true;const it=el("div","item"),m=el("div","main");
+    if(ci){const sw=el("div","sw");const i=el("i");i.style.background=LURE[ci.color][1];sw.append(i);it.append(sw)}
+    m.append(el("div",null,v.n),el("div",null,(ci?ci.n+" von "+ci.tot+" Fängen auf "+LURE[ci.color][0]:"")+(ci&&bi?" · ":"")+(bi?"meist „"+bi.bait+"“":"")));it.append(m);KB.append(it)});
+  if(!any)KB.append(el("p","hint","Wähl beim Fang den Köder aus deiner Köderbox und check das Wasser. Dann siehst du hier, welche Farbe bei welchem Wasser bei dir fängt."));
+  else KB.append(el("p","hint","Zeigt, womit du gefangen hast, nicht welche Farbe besser ist: Was man oft fischt, fängt auch öfter."));
+}
+function renderMyth(list){const out=$("#mythOut");out.replaceChildren();const n=list.length,NEED=20;
+  if(n<NEED){const l=el("div","lock");l.append(el("p","verdict","Wird nach "+NEED+" Angeltagen freigeschaltet"));
+    const pb=el("div","xp"),pi=el("i");pi.style.width=(n/NEED*100)+"%";pb.append(pi);l.append(pb,el("p","hint mono",n+" von "+NEED));
+    l.append(el("p","hint","Dann siehst du, ob Luftdruck, Tageszeit, Wolken oder Mond bei dir wirklich etwas ändern."));out.append(l);return}
+  const F=[["Luftdruck","press",["fallend","stabil","steigend"],{}],["Tageszeit","light",["dawn","day","night"],{dawn:"Dämmerung",day:"Tag",night:"Nacht"}],
+    ["Bewölkung","cloud",["klar","wechselnd","bedeckt"],{}],["Wassertrübung","turb",["klar","leicht","trueb","braun"],{klar:"Klar",leicht:"Leicht trüb",trueb:"Stark trüb",braun:"Moorwasser"}],["Mond","moon",["Neumond","zunehmend","Vollmond","abnehmend"],{}]];
+  F.forEach(([title,key,bk,lab])=>{const agg=bk.map(b=>{const r=list.filter(e=>e.wx&&e.wx[key]===b),h=r.reduce((a,e)=>a+e.dur,0),f=r.reduce((a,e)=>a+countOf(e),0);return {b,n:r.length,rate:h?f/h:0}});
+    const box=el("div","myth");box.append(el("h3",null,title));const max=Math.max(...agg.map(a=>a.rate),.01);
+    agg.forEach(a=>{const r=el("div","mb");r.append(el("span",null,lab[a.b]||a.b));const tr=el("div","track"),i=el("i",a.rate===max&&a.n?"max":"");i.style.width=(a.rate/max*100)+"%";tr.append(i);
+      r.append(tr,el("span","val mono",a.n?a.rate.toLocaleString("de-DE",{maximumFractionDigits:2})+"/h":"–"));box.append(r)});
+    const ok=agg.filter(a=>a.n>=4);let v="Noch zu wenige Angeltage je Gruppe.";
+    if(ok.length>=2){const hi=ok.reduce((a,b)=>b.rate>a.rate?b:a),lo=ok.reduce((a,b)=>b.rate<a.rate?b:a),ratio=lo.rate?hi.rate/lo.rate:9;
+      v=ratio>=1.5?"Deutlich: „"+(lab[hi.b]||hi.b)+"“ bringt etwa "+fmt1(Math.min(ratio,9))+"× so viel Fisch pro Stunde.":ratio>=1.2?"Leichter Vorteil für „"+(lab[hi.b]||hi.b)+"“, kann Zufall sein.":"Kein klarer Effekt."}
+    box.append(el("p","verdict",v));out.append(box)});
+  out.append(el("p","hint","Fische pro Stunde, Schneidertage eingerechnet. Ein einfacher Vergleich, keine strenge Statistik."))}
+
+function renderAll(){renderChips();renderHeute();renderGewaesser();renderWaterCheck();renderLive();renderFangbuch();renderLures();renderLivebar()}
+renderAll();
+(async()=>{idb=await idbOpen();let moved=false;
+  const all=S.entries.flatMap(e=>Array.isArray(e.catches)?e.catches:[]).concat(S.live?S.live.catches:[]).concat(S.lures||[]);
+  for(const c of all){if(c.photo){c.photoId=c.photoId||"p_"+(c.id||Math.random().toString(36).slice(2));if(await putPhoto(c.photoId,c.photo)){delete c.photo;moved=true}}}
+  await loadPhotos();if(moved)save();renderAll()})();
+})();
+</script>
+
+</body>
+</html>

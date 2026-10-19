@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 132 132" width="1024" height="1024">
+  <!-- Bissfibel App-Symbol: Fischgräte, deren Rückgrat ein Maßband ist -->
+  <rect width="132" height="132" rx="30" fill="#1F6F78"/>
+  <g fill="none" stroke="#F4F6F3" stroke-width="5" stroke-linecap="round"><path d="M38 66l-9-17M38 66l-9 17M54 66l-9-19M54 66l-9 19M70 66l-9-19M70 66l-9 19M86 66l-8-17M86 66l-8 17M22 66l-9-12M22 66l-9 12"/></g>
+  <rect x="18" y="60" width="78" height="12" rx="2" fill="#F2C230"/>
+  <rect x="22" y="60" width="1.6" height="7" fill="#3B2F12"/>
+  <rect x="26" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="30" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="34" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="38" y="60" width="1.6" height="7" fill="#3B2F12"/>
+  <rect x="42" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="46" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="50" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="54" y="60" width="1.6" height="7" fill="#3B2F12"/>
+  <rect x="58" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="62" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="66" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="70" y="60" width="1.6" height="7" fill="#3B2F12"/>
+  <rect x="74" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="78" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="82" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <rect x="86" y="60" width="1.6" height="7" fill="#3B2F12"/>
+  <rect x="90" y="60" width="1.6" height="4" fill="#3B2F12"/>
+  <path d="M96 52c14 0 22 8 24 14-2 6-10 14-24 14z" fill="#F4F6F3"/><circle cx="108" cy="63" r="3.2" fill="#1F6F78"/>
+  <rect x="60" y="56" width="4" height="20" fill="#E8552B"/>
+</svg>

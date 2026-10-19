@@ -1,4 +1,4 @@
-import { Placeholder } from './Placeholder';
+import { Placeholder } from '../components/Placeholder';
 
 export function Erfolge() {
   return (

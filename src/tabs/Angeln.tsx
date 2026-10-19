@@ -1,6 +1,6 @@
-import { Placeholder } from './Placeholder';
+import { Placeholder } from '../components/Placeholder';
 
-export function Angeln() {
+export function Angeln(_p: { geheZu: (t: import('../components/TabBar').TabId) => void }) {
   return (
     <>
       <Placeholder

@@ -10,6 +10,9 @@ import { GEWAESSER_TYPEN, type GewaesserTyp } from '../lib/wassertemp';
 import { fmt1, neueId } from '../lib/zeit';
 
 const ANGELATLAS = 'https://angelatlas-sachsen.de';
+type Filter = 'alle' | 'still' | GewaesserTyp;
+const STILL: GewaesserTyp[] = ['see', 'teich', 'talsperre'];
+const NEBEN: GewaesserTyp[] = ['kanal', 'bach'];
 
 export function Gewaesser() {
   const e = useEinstellungen();
@@ -18,23 +21,24 @@ export function Gewaesser() {
   const [suche, setSuche] = useState<{ radius: number; treffer: Treffer[] } | null>(null);
   const [laeuft, setLaeuft] = useState(false);
   const [fehler, setFehler] = useState('');
-  const [filter, setFilter] = useState<'alle' | GewaesserTyp>('alle');
+  const [filter, setFilter] = useState<Filter>('alle');
+  const [mitBaechen, setMitBaechen] = useState(false);
   const [bearbeiten, setBearbeiten] = useState<GW | 'neu' | null>(null);
 
   // Letzte Suche für diesen Ort wieder anzeigen.
   useEffect(() => {
     if (!e.wohnort) return;
-    cacheLesen<{ radius: number; treffer: Treffer[] }>(`suche:${e.wohnort.lat.toFixed(3)},${e.wohnort.lon.toFixed(3)}`).then((c) => c && setSuche(c.v));
+    cacheLesen<{ radius: number; treffer: Treffer[] }>(`suche2:${e.wohnort.lat.toFixed(3)},${e.wohnort.lon.toFixed(3)}`).then((c) => c && setSuche(c.v));
   }, [e.wohnort?.lat, e.wohnort?.lon]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function suchen() {
     if (!e.wohnort) { setFehler('Wähl zuerst einen Ort aus den Vorschlägen.'); return; }
     setLaeuft(true); setFehler('');
     try {
-      const treffer = await sucheGewaesser(e.wohnort, e.umkreisKm);
+      const treffer = await sucheGewaesser(e.wohnort, e.umkreisKm, mitBaechen);
       const v = { radius: e.umkreisKm, treffer };
       setSuche(v); setFilter('alle');
-      await cacheSchreiben(`suche:${e.wohnort.lat.toFixed(3)},${e.wohnort.lon.toFixed(3)}`, v);
+      await cacheSchreiben(`suche2:${e.wohnort.lat.toFixed(3)},${e.wohnort.lon.toFixed(3)}`, v);
     } catch {
       setFehler('Die Gewässersuche ist gerade nicht erreichbar. Versuch es gleich noch einmal oder leg das Gewässer unten selbst an.');
     } finally {
@@ -50,13 +54,15 @@ export function Gewaesser() {
     melde(`${t.name} ist jetzt in deinen Gewässern.`);
   }
 
-  const imUmkreis = suche ? suche.treffer.filter((t) => t.distKm <= e.umkreisKm) : [];
+  // Seen, Teiche, Talsperren und Flüsse zuerst, Kanäle und Bäche danach; jeweils nach Entfernung.
+  const imUmkreis = suche ? suche.treffer.filter((t) => t.distKm <= e.umkreisKm)
+    .sort((a, b) => +NEBEN.includes(a.typ) - +NEBEN.includes(b.typ) || a.distKm - b.distKm) : [];
   const zaehler = useMemo(() => {
-    const z: Record<string, number> = { alle: imUmkreis.length };
+    const z: Record<string, number> = { alle: imUmkreis.length, still: imUmkreis.filter((t) => STILL.includes(t.typ)).length };
     imUmkreis.forEach((t) => (z[t.typ] = (z[t.typ] ?? 0) + 1));
     return z;
   }, [imUmkreis]);
-  const gezeigt = imUmkreis.filter((t) => filter === 'alle' || t.typ === filter);
+  const gezeigt = imUmkreis.filter((t) => filter === 'alle' || (filter === 'still' ? STILL.includes(t.typ) : t.typ === filter));
   const vorhanden = new Set(meine.map((w) => w.osmId ?? w.name));
   const anzahlImUmkreis = meine.filter((w) => w.distKm == null || w.distKm <= e.umkreisKm).length;
 
@@ -70,7 +76,9 @@ export function Gewaesser() {
           <input id="radius" type="range" min={5} max={100} step={5} value={e.umkreisKm}
             onChange={(ev) => speichereEinstellungen({ umkreisKm: +ev.target.value })} />
         </label>
+        <label className="chk" htmlFor="baeche"><input id="baeche" type="checkbox" checked={mitBaechen} onChange={(ev) => setMitBaechen(ev.target.checked)} />Auch Bäche mitsuchen (dauert länger)</label>
         <button className="primary go" type="submit" disabled={laeuft}>{laeuft ? 'Suche läuft …' : 'Gewässer suchen'}</button>
+        {laeuft && <p className="hint">Die Suche kann bei großem Umkreis bis zu einer halben Minute dauern. Das Ergebnis wird gemerkt.</p>}
         {fehler && <p className="err">{fehler}</p>}
       </form>
 
@@ -84,9 +92,9 @@ export function Gewaesser() {
             <p className="hint">Gesucht wurde im Umkreis von {suche.radius} km. <button type="button" className="linkbtn" onClick={suchen}>Mit {e.umkreisKm} km neu suchen</button></p>
           )}
           <div className="chips">
-            {(['alle', ...Object.keys(GEWAESSER_TYPEN)] as ('alle' | GewaesserTyp)[]).filter((k) => zaehler[k]).map((k) => (
+            {(['alle', 'still', 'see', 'teich', 'talsperre', 'fluss', 'kanal', 'bach'] as Filter[]).filter((k) => zaehler[k]).map((k) => (
               <button key={k} type="button" aria-pressed={filter === k} onClick={() => setFilter(k)}>
-                {k === 'alle' ? 'Alle' : GEWAESSER_TYPEN[k].name} {zaehler[k]}
+                {k === 'alle' ? 'Alle' : k === 'still' ? 'Seen, Teiche, Talsperren' : GEWAESSER_TYPEN[k].name} {zaehler[k]}
               </button>
             ))}
           </div>

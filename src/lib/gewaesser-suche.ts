@@ -22,24 +22,22 @@ const SERVER = ['https://overpass-api.de/api/interpreter', 'https://overpass.kum
 const TRINKWASSER = ['eibenstock', 'carlsfeld', 'cranzahl', 'sosa', 'muldenberg', 'werda', 'dröda', 'saidenbach', 'neunzehnhain',
   'einsiedel', 'lichtenberg', 'klingenberg', 'lehnmühle', 'gottleuba', 'rauschenbach'];
 
-export function overpassQuery(lat: number, lon: number, radiusKm: number): string {
+/**
+ * Abfrage: Seen, Teiche, Talsperren und Flüsse mit Namen; Bäche nur auf Wunsch.
+ * Nur Umrissrechtecke (bb) statt ganzer Linien, damit die Antwort klein und schnell bleibt.
+ */
+export function overpassQuery(lat: number, lon: number, radiusKm: number, mitBaechen = false): string {
   const a = `(around:${Math.round(radiusKm * 1000)},${lat.toFixed(4)},${lon.toFixed(4)})(area.sn)`;
-  return `[out:json][timeout:60];
+  const fliess = mitBaechen ? 'river|canal|stream' : 'river|canal';
+  return `[out:json][timeout:40];
 area["ISO3166-2"="DE-SN"][admin_level=4]->.sn;
 (
   way["natural"="water"]["name"]${a};
   relation["natural"="water"]["name"]${a};
   way["landuse"="reservoir"]["name"]${a};
+  way["waterway"~"^(${fliess})$"]["name"]${a};
 );
-out tags center bb;
-(
-  way["waterway"~"^(river|canal)$"]["name"]${a};
-);
-out tags geom;
-(
-  way["waterway"="stream"]["name"]${a};
-);
-out tags center;`;
+out tags bb qt;`;
 }
 
 /** Typ eines Stillgewässers aus den OSM-Merkmalen, oder null wenn es nicht passt (z. B. Rückhaltebecken). */
@@ -75,15 +73,23 @@ export function parseOverpass(els: El[], home: { lat: number; lon: number }, rad
     const t = e.tags ?? {};
     const name = t.name?.trim();
     if (!name) continue;
+    const b = e.bounds;
+    const mitte = e.center ?? (b ? { lat: (b.minlat + b.maxlat) / 2, lon: (b.minlon + b.maxlon) / 2 } : undefined);
     if (t.waterway) {
       const typ: GewaesserTyp = t.waterway === 'canal' ? 'kanal' : t.waterway === 'stream' ? 'bach' : 'fluss';
-      const pts = e.geometry ?? (e.center ? [e.center] : []);
-      let best = Infinity, bp = pts[0], laenge = 0;
-      pts.forEach((p, i) => {
-        const d = entfernungKm(home, p);
-        if (d < best) { best = d; bp = p; }
-        if (i && d <= radiusKm) laenge += entfernungKm(pts[i - 1], p);
-      });
+      let bp: { lat: number; lon: number } | undefined, best = Infinity, laenge = 0;
+      if (e.geometry?.length) {
+        e.geometry.forEach((p, i) => {
+          const d = entfernungKm(home, p);
+          if (d < best) { best = d; bp = p; }
+          if (i && d <= radiusKm) laenge += entfernungKm(e.geometry![i - 1], p);
+        });
+      } else if (b) {
+        // Nächster Punkt des Abschnitts ≈ nächster Punkt seines Rechtecks; Länge ≈ Diagonale.
+        bp = { lat: Math.min(b.maxlat, Math.max(b.minlat, home.lat)), lon: Math.min(b.maxlon, Math.max(b.minlon, home.lon)) };
+        best = entfernungKm(home, bp);
+        if (best <= radiusKm) laenge = entfernungKm({ lat: b.minlat, lon: b.minlon }, { lat: b.maxlat, lon: b.maxlon }) * 0.9;
+      } else if (mitte) { bp = mitte; best = entfernungKm(home, mitte); }
       if (!bp) continue;
       const k = `${typ}|${name}`;
       const alt = fluesse.get(k);
@@ -95,7 +101,7 @@ export function parseOverpass(els: El[], home: { lat: number; lon: number }, rad
       continue;
     }
     const typ = flaechenTyp(t);
-    const c = e.center;
+    const c = mitte;
     if (!typ || !c) continue;
     const ha = e.bounds ? flaecheAusBounds(e.bounds) : undefined;
     if (ha != null && ha < 0.5) continue;
@@ -120,8 +126,8 @@ export function parseOverpass(els: El[], home: { lat: number; lon: number }, rad
   return seen.filter((t) => t.distKm <= radiusKm + 0.5).map((t) => ({ ...t, distKm: Math.round(t.distKm * 10) / 10 }));
 }
 
-export async function sucheGewaesser(home: { lat: number; lon: number }, radiusKm: number, signal?: AbortSignal): Promise<Treffer[]> {
-  const body = 'data=' + encodeURIComponent(overpassQuery(home.lat, home.lon, radiusKm));
+export async function sucheGewaesser(home: { lat: number; lon: number }, radiusKm: number, mitBaechen = false, signal?: AbortSignal): Promise<Treffer[]> {
+  const body = 'data=' + encodeURIComponent(overpassQuery(home.lat, home.lon, radiusKm, mitBaechen));
   let fehler: unknown = null;
   for (const url of SERVER) {
     try {

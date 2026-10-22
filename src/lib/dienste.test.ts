@@ -41,6 +41,19 @@ describe('Gewässersuche', () => {
     const q = overpassQuery(50.72, 12.49, 50);
     expect(q).toContain('"ISO3166-2"="DE-SN"');
     expect(q).toContain('around:50000,50.7200,12.4900');
+    expect(q).toContain('out tags bb');
+    expect(q).not.toContain('geom');
+    expect(q).not.toContain('stream');
+    expect(overpassQuery(50.72, 12.49, 50, true)).toContain('stream');
+  });
+  it('findet Seen und Talsperren auch ohne Mittelpunkt (nur Umrissrechteck)', () => {
+    const t = parseOverpass([
+      { type: 'way', id: 7, tags: { natural: 'water', water: 'reservoir', name: 'Talsperre Pöhl' }, bounds: { minlat: 50.53, minlon: 12.14, maxlat: 50.57, maxlon: 12.20 } },
+      { type: 'relation', id: 8, tags: { natural: 'water', water: 'lake', name: 'Kiessee Mosel' }, bounds: { minlat: 50.76, minlon: 12.46, maxlat: 50.77, maxlon: 12.48 } },
+      { type: 'way', id: 9, tags: { waterway: 'river', name: 'Pleiße' }, bounds: { minlat: 50.70, minlon: 12.40, maxlat: 50.80, maxlon: 12.45 } },
+    ], ZWICKAU, 50);
+    expect(t.map((x) => `${x.name}:${x.typ}`).sort()).toEqual(['Kiessee Mosel:see', 'Pleiße:fluss', 'Talsperre Pöhl:talsperre']);
+    expect(t.find((x) => x.name === 'Pleiße')!.laengeKm).toBeGreaterThan(5);
   });
   it('erkennt Gewässertypen und lässt Rückhaltebecken weg', () => {
     expect(flaechenTyp({ name: 'Großer Teich', natural: 'water' })).toBe('teich');

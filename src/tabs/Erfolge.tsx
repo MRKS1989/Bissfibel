@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { db, ladeSession, speichereEinstellungen, speichereSession, type Angeltag, type Fang, type Koeder } from '../db';
 import { Icon, IC } from '../components/Icons';
 import { FotoKnopf } from '../components/Koeder';
-import { RegelnJetzt } from '../components/RegelnJetzt';
 import { Sheet, useMeldung } from '../components/Ui';
 import { useAngeltage, useEinstellungen, useFoto, useKoeder, useSession } from '../hooks/daten';
 import { ARTEN, artName } from '../lib/arten';
@@ -49,7 +48,6 @@ export function Erfolge() {
         <span className="hint">{demo ? 'Beispiel: 60 erfundene Angeltage' : ''}</span>
         <button type="button" onClick={() => setDemo(!demo)}>{demo ? 'Zurück zu meinen Daten' : 'Mit Beispieldaten ansehen'}</button>
       </div>
-      <RegelnJetzt />
       <RangBox tage={tage} koeder={koeder} />
       {!demo && <SaisonZiele tage={tage} />}
       <PBs tage={pbTage} demo={demo} />

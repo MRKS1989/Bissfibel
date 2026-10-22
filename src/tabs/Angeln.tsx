@@ -5,7 +5,7 @@ import { useFeier } from '../components/Feier';
 import { Icon, IC } from '../components/Icons';
 import { FotoKnopf, KoederBox, KoederLeiste } from '../components/Koeder';
 import { RegelZeile } from '../components/Regeln';
-import { VereinsregelnHeute } from '../components/RegelnJetzt';
+import { RegelnJetzt, VereinsregelnHeute } from '../components/RegelnJetzt';
 import { DatenSicherung } from '../components/Sicherung';
 import type { TabId } from '../components/TabBar';
 import { ArmButton, useMeldung } from '../components/Ui';
@@ -42,6 +42,7 @@ export function Angeln({ geheZu }: { geheZu: (t: TabId) => void }) {
           </>
         )}
       </div>
+      <RegelnJetzt />
       <Fangbuch />
       <KoederBox />
       <DatenSicherung />

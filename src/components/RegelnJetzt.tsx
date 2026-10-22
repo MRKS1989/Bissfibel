@@ -35,8 +35,10 @@ export function RegelnJetzt() {
   const datum = heute.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
 
   return (
-    <div className="panel">
-      <div className="row between"><h2>Was heute gilt</h2><span className="hint">{datum}</span></div>
+    <details className="panel">
+      <summary>Regeln: Was heute gilt{aktiv.length || j.raubfisch.aktiv ? ' (Hinweise aktiv)' : ''}</summary>
+      <div className="inner">
+      <span className="hint">{datum}</span>
 
       <div className={'rule' + (j.raubfisch.aktiv ? ' closed' : '')}><p className="rule-h">{j.raubfisch.text}</p></div>
 
@@ -88,7 +90,8 @@ export function RegelnJetzt() {
       </details>
 
       {bearbeiten && <RegelForm r={bearbeiten === 'neu' ? null : bearbeiten} alle={regeln} onClose={() => setBearbeiten(null)} />}
-    </div>
+      </div>
+    </details>
   );
 }
 

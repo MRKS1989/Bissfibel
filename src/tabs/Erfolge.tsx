@@ -6,7 +6,6 @@ import { Sheet, useMeldung } from '../components/Ui';
 import { useAngeltage, useEinstellungen, useFoto, useKoeder, useSession } from '../hooks/daten';
 import { ARTEN, artName } from '../lib/arten';
 import { LICHT_NAME } from '../lib/astro';
-import { beispielTage } from '../lib/demo';
 import { loescheFoto, speichereFoto, verkleinern } from '../lib/foto';
 import { EHRLICH_HINWEIS, farbAuswertung, koederAuswertung, MIN_TAGE_MYTHEN, mythenCheck } from '../lib/lernen';
 import { abzeichen, pbVerlauf, PUNKTE_TEXT, punkte, RAENGE, rangVon, SAISON_NAME, saisonziele, stufenKeys, STUFEN_NAME } from '../lib/punkte';
@@ -21,40 +20,35 @@ export function Erfolge() {
   const echteKoeder = useKoeder();
   const session = useSession();
   const e = useEinstellungen();
-  const [demo, setDemo] = useState(false);
-  const tage = useMemo(() => (demo ? beispielTage() : echteTage), [demo, echteTage]);
-  const koeder = demo ? [] : echteKoeder;
+  const tage = echteTage;
+  const koeder = echteKoeder;
 
   // Neue Abzeichen gelten als gesehen, sobald der Tab offen ist.
   useEffect(() => {
-    if (!e.geladen || demo) return;
+    if (!e.geladen) return;
     const k = stufenKeys(abzeichen(echteTage, echteKoeder));
     if (k.some((x) => !e.gesehenAbzeichen.includes(x))) speichereEinstellungen({ gesehenAbzeichen: k });
   }, [e.geladen, echteTage, echteKoeder]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // PBs: Fänge der laufenden Session zählen sofort mit.
   const pbTage: Angeltag[] = useMemo(() => {
-    if (demo || !session) return tage;
+    if (!session) return tage;
     const t = teile(session.start);
     return [...tage, {
       id: 'live', datum: t.key, beginn: t.hhmm, startTs: session.start, dauerH: (Date.now() - session.start) / 36e5, gewaesserId: session.gewaesserId,
       gewaesserName: '', zielfisch: session.zielfisch, live: true, bisse: session.bisse.length, faenge: session.faenge, wetter: { licht: 'tag', mond: 'zunehmend' },
     }];
-  }, [demo, session, tage]);
+  }, [session, tage]);
 
   return (
     <>
-      <div className="row between">
-        <span className="hint">{demo ? 'Beispiel: 60 erfundene Angeltage' : ''}</span>
-        <button type="button" onClick={() => setDemo(!demo)}>{demo ? 'Zurück zu meinen Daten' : 'Mit Beispieldaten ansehen'}</button>
-      </div>
       <RangBox tage={tage} koeder={koeder} />
-      {!demo && <SaisonZiele tage={tage} />}
-      <PBs tage={pbTage} demo={demo} />
+      <SaisonZiele tage={tage} />
+      <PBs tage={pbTage} />
       <Abzeichen tage={tage} koeder={koeder} />
       <WasFaengt tage={tage} />
       <MythenCheck tage={tage} />
-      <Jahresrueckblick tage={tage} koeder={koeder} demo={demo} />
+      <Jahresrueckblick tage={tage} koeder={koeder} />
     </>
   );
 }
@@ -101,7 +95,7 @@ function fangeVonArt(k: string, tage: Angeltag[]): FangMitTag[] {
   return l.sort((a, b) => (b.f.laengeCm ?? 0) - (a.f.laengeCm ?? 0) || +!!b.f.fotoId - +!!a.f.fotoId);
 }
 
-function PBs({ tage, demo }: { tage: Angeltag[]; demo: boolean }) {
+function PBs({ tage }: { tage: Angeltag[] }) {
   const [offen, setOffen] = useState<string | null>(null);
   const karten = Object.keys(ARTEN).map((k) => { const l = fangeVonArt(k, tage); return l.length ? { k, top: l[0], n: l.length } : null; })
     .filter(Boolean).sort((a, b) => (b!.top.f.laengeCm ?? 0) - (a!.top.f.laengeCm ?? 0)) as { k: string; top: FangMitTag; n: number }[];
@@ -110,9 +104,9 @@ function PBs({ tage, demo }: { tage: Angeltag[]; demo: boolean }) {
       <div className="row between"><h2>Deine PBs</h2><span className="hint">Tippe für Details</span></div>
       {!karten.length && <p className="hint">Noch kein Fisch im Buch. Sobald du einen Fang einträgst, erscheint hier dein PB für diese Art.</p>}
       <div className="pbs">
-        {karten.map(({ k, top, n }) => <PbKarte key={k} k={k} top={top} n={n} demo={demo} onOpen={() => setOffen(k)} />)}
+        {karten.map(({ k, top, n }) => <PbKarte key={k} k={k} top={top} n={n} onOpen={() => setOffen(k)} />)}
       </div>
-      {offen && <PbDetail k={offen} tage={tage} demo={demo} onClose={() => setOffen(null)} />}
+      {offen && <PbDetail k={offen} tage={tage} onClose={() => setOffen(null)} />}
     </div>
   );
 }
@@ -133,7 +127,7 @@ async function fotoSetzen(x: FangMitTag, file: File) {
   }
 }
 
-function PbKarte({ k, top, n, demo, onOpen }: { k: string; top: FangMitTag; n: number; demo: boolean; onOpen: () => void }) {
+function PbKarte({ k, top, n, onOpen }: { k: string; top: FangMitTag; n: number; onOpen: () => void }) {
   const { f, t, laeuft } = top;
   const melde = useMeldung();
   return (
@@ -146,7 +140,7 @@ function PbKarte({ k, top, n, demo, onOpen }: { k: string; top: FangMitTag; n: n
           <span className="meta">{[datumKeyKurz(t.datum), t.gewaesserName, laeuft ? 'läuft gerade' : '', n > 1 ? `${n} Fänge` : ''].filter(Boolean).join(' · ')}</span>
         </div>
       </button>
-      {!f.fotoId && !demo && (
+      {!f.fotoId && (
         <div className="tx"><FotoKnopf label="Foto hinzufügen" onFile={async (file) => { try { await fotoSetzen(top, file); melde('Foto gespeichert · +2 Punkte'); } catch { melde('Das Foto konnte nicht gelesen werden.'); } }} /></div>
       )}
     </div>
@@ -172,7 +166,7 @@ function Fakten({ rows }: { rows: [string, string][] }) {
   return <div className="facts">{rows.map(([k, v]) => <div className="fact" key={k}><div className="k">{k}</div><div className="v small">{v}</div></div>)}</div>;
 }
 
-function PbDetail({ k, tage, demo, onClose }: { k: string; tage: Angeltag[]; demo: boolean; onClose: () => void }) {
+function PbDetail({ k, tage, onClose }: { k: string; tage: Angeltag[]; onClose: () => void }) {
   const melde = useMeldung();
   const alle = fangeVonArt(k, tage);
   if (!alle.length) return null;
@@ -181,7 +175,7 @@ function PbDetail({ k, tage, demo, onClose }: { k: string; tage: Angeltag[]; dem
   return (
     <Sheet title={`PB ${artName(k)}`} onClose={onClose}>
       <FangFoto f={f} className="mphoto" />
-      {!demo && <FotoKnopf label={f.fotoId ? 'Foto ändern' : 'Foto hinzufügen'} onFile={async (file) => { try { await fotoSetzen(x, file); melde('Foto gespeichert.'); } catch { melde('Das Foto konnte nicht gelesen werden.'); } }} />}
+      <FotoKnopf label={f.fotoId ? 'Foto ändern' : 'Foto hinzufügen'} onFile={async (file) => { try { await fotoSetzen(x, file); melde('Foto gespeichert.'); } catch { melde('Das Foto konnte nicht gelesen werden.'); } }} />
       <div className={'mlen' + (f.laengeCm ? '' : ' nolen')}>{f.laengeCm ? <>{f.laengeCm}<small> cm</small></> : 'Länge fehlt'}</div>
       <Fakten rows={[
         ['Datum', datumKeyKurz(t.datum)], ['Uhrzeit', `${uhrzeit(f.zeit)} Uhr`], ['Gewässer', t.gewaesserName || '–'], ['Köder', f.koeder ?? '–'],
@@ -335,7 +329,7 @@ function MythenCheck({ tage }: { tage: Angeltag[] }) {
   );
 }
 
-function Jahresrueckblick({ tage, koeder, demo }: { tage: Angeltag[]; koeder: Koeder[]; demo: boolean }) {
+function Jahresrueckblick({ tage, koeder }: { tage: Angeltag[]; koeder: Koeder[] }) {
   const jahre = verfuegbareJahre(tage);
   const [jahr, setJahr] = useState<number | null>(null);
   const j = jahr && jahre.includes(jahr) ? jahr : jahre[0];
@@ -357,7 +351,7 @@ function Jahresrueckblick({ tage, koeder, demo }: { tage: Angeltag[]; koeder: Ko
           </div>
           <div className="dots" aria-hidden="true">{seiten(r).map((_, i) => <i key={i} className={i === seite ? 'on' : ''} />)}</div>
           <p className="hint">Zum Blättern wischen.</p>
-          {!demo && <button type="button" onClick={() => alsBild(r)}>Als Bild speichern</button>}
+          <button type="button" onClick={() => alsBild(r)}>Als Bild speichern</button>
           <p className="hint">Das Bild enthält keine Ortsangaben und keine GPS-Daten.</p>
         </>
       )}

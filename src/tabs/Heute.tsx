@@ -11,7 +11,6 @@ import { reiheFuer } from '../hooks/wetter';
 import { useWetterStand } from '../hooks/WetterKontext';
 import { ARTEN, artName, GRUPPEN, hatProfil } from '../lib/arten';
 import { mond as mondVon, sonne } from '../lib/astro';
-import { beispielTage } from '../lib/demo';
 import { gewaesserLernen, gruppenAus, MIN_TAGE_ART, MIN_TAGE_GEWAESSER, mitGewaesser, persoenlich, faengeVon } from '../lib/lernen';
 import { prognose, type TagesPrognose } from '../lib/prognose';
 import { raubfischVerbotGilt, regelFuer } from '../lib/regeln-sachsen';
@@ -29,7 +28,6 @@ export function Heute({ geheZu }: { geheZu: (t: TabId) => void }) {
   const tage = useAngeltage();
   const [favOffen, setFavOffen] = useState(false);
   const [wahl, setWahl] = useState<{ id: string; key: string } | null>(null);
-  const [demo, setDemo] = useState(false);
   const [lernOffen, setLernOffen] = useState(false);
   const art = hatProfil(e.fischart) ? e.fischart : e.topFische[0] ?? 'hecht';
 
@@ -107,7 +105,7 @@ export function Heute({ geheZu }: { geheZu: (t: TabId) => void }) {
             </div>
           )}
           {detailTag && (
-            <TagDetail w={detailW} tag={detailTag} art={art} tage={demo ? beispielTage() : tage} demo={demo} setDemo={setDemo}
+            <TagDetail w={detailW} tag={detailTag} art={art} tage={tage}
               lernOffen={lernOffen} setLernOffen={setLernOffen} />
           )}
         </div>
@@ -221,8 +219,8 @@ function Plakette({ u }: { u: Urteil }) {
   return <span className={'vt' + (u.ok === true ? ' ok' : u.ok === false ? ' no' : '')}>{u.text}</span>;
 }
 
-function TagDetail({ w, tag, art, tage, demo, setDemo, lernOffen, setLernOffen }: {
-  w: GW; tag: TagesPrognose; art: string; tage: ReturnType<typeof useAngeltage>; demo: boolean; setDemo: (b: boolean) => void;
+function TagDetail({ w, tag, art, tage, lernOffen, setLernOffen }: {
+  w: GW; tag: TagesPrognose; art: string; tage: ReturnType<typeof useAngeltage>;
   lernOffen: boolean; setLernOffen: (b: boolean) => void;
 }) {
   const bs = tag.bestes.start;
@@ -289,7 +287,7 @@ function TagDetail({ w, tag, art, tage, demo, setDemo, lernOffen, setLernOffen }
       <PegelBox w={w} art={art} />
 
       <details className="learn" open={lernOffen} onToggle={(ev) => setLernOffen((ev.target as HTMLDetailsElement).open)}>
-        <summary>{demo ? 'Das sagen deine Daten (Beispiel)' : 'Das sagen deine Daten'}</summary>
+        <summary>Das sagen deine Daten</summary>
         {P.aktiv ? (
           <>
             <p>{P.aussage}</p>
@@ -298,14 +296,9 @@ function TagDetail({ w, tag, art, tage, demo, setDemo, lernOffen, setLernOffen }
             ))}
           </>
         ) : (
-          <p className="hint">{demo
-            ? 'Im Beispiel gibt es nur genug Daten für Zander, Hecht und Barsch.'
-            : `Ab ${MIN_TAGE_ART} Angeltagen auf ${artName(art)} lernt der Bisswert von dir und erkennt Tage, an denen du besonders gut fängst (${P.n} von ${MIN_TAGE_ART}).`}</p>
+          <p className="hint">{`Ab ${MIN_TAGE_ART} Angeltagen auf ${artName(art)} lernt der Bisswert von dir und erkennt Tage, an denen du besonders gut fängst (${P.n} von ${MIN_TAGE_ART}).`}</p>
         )}
-        {!demo && (G.aktiv ? <p>{G.aussage}</p> : <p className="hint">{G.n} von {MIN_TAGE_GEWAESSER} Angeltagen an {w.name}. Ab {MIN_TAGE_GEWAESSER} lernt der Bisswert auch dieses Gewässer kennen.</p>)}
-        <button type="button" className="ghost" style={{ alignSelf: 'flex-start' }} onClick={() => { setDemo(!demo); setLernOffen(true); }}>
-          {demo ? 'Beispiel ausblenden' : 'Beispiel ansehen'}
-        </button>
+        {(G.aktiv ? <p>{G.aussage}</p> : <p className="hint">{G.n} von {MIN_TAGE_GEWAESSER} Angeltagen an {w.name}. Ab {MIN_TAGE_GEWAESSER} lernt der Bisswert auch dieses Gewässer kennen.</p>)}
         <p className="hint">Typisch für {artName(art)}: {ARTEN[art]?.profil?.tipp}</p>
       </details>
     </div>

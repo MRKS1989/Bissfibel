@@ -1,4 +1,5 @@
 // Kleine wiederverwendbare Bausteine: Pegellatte, Blatt von unten, Bestätigen mit zweitem Tipp, Meldungen.
+import { createPortal } from 'react-dom';
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { fmt1 } from '../lib/zeit';
 
@@ -35,7 +36,8 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
       if (prev?.isConnected) prev.focus();
     };
   }, [onClose]);
-  return (
+  // Direkt an <body> hängen: Steckt das Blatt in einem <label>, würde jeder Tipp darin das Feld wieder öffnen.
+  return createPortal(
     <div className="modal" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="mcard">
         <div className="row between">
@@ -44,7 +46,8 @@ export function Sheet({ title, onClose, children }: { title: string; onClose: ()
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

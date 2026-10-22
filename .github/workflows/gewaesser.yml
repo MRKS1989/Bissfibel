@@ -1,0 +1,49 @@
+name: Gewässerdaten aktualisieren
+
+# Baut die Gewässerliste für Sachsen aus OpenStreetMap (Geofabrik-Auszug) und legt sie in die App.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 3 1 * *' # monatlich am 1. um 3:17 Uhr (UTC)
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/gewaesser/**'
+      - 'src/lib/gewaesser-daten.ts'
+      - '.github/workflows/gewaesser.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gewaesser
+  cancel-in-progress: true
+
+jobs:
+  bauen:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Werkzeug für OpenStreetMap-Daten installieren
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq osmium-tool
+      - name: Sachsen-Auszug laden
+        run: curl -sSfL -o sachsen.osm.pbf https://download.geofabrik.de/europe/germany/sachsen-latest.osm.pbf
+      - name: Gewässer herausfiltern
+        run: |
+          osmium tags-filter sachsen.osm.pbf nwr/natural=water nwr/landuse=reservoir w/waterway=river,canal,stream -o wasser.osm.pbf --overwrite
+          osmium export wasser.osm.pbf -f geojsonseq -a type,id -o wasser.geojsonseq --overwrite
+      - name: Gewässerliste bauen
+        run: npx tsx scripts/gewaesser/baue.ts wasser.geojsonseq public/gewaesser-sachsen.json
+      - name: Speichern, wenn sich etwas geändert hat
+        run: |
+          git config user.name "Bissfibel-Daten"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/gewaesser-sachsen.json
+          if git diff --cached --quiet; then echo "Keine Änderung"; exit 0; fi
+          git commit -m "Gewässerdaten Sachsen aktualisiert (OpenStreetMap)"
+          git push

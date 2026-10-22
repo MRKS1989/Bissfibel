@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # Nach neuen Gewässerdaten neu veröffentlichen (Pushes des Daten-Ablaufs lösen sonst nichts aus).
+  workflow_run:
+    workflows: ['Gewässerdaten aktualisieren']
+    types: [completed]
 
 permissions:
   contents: read

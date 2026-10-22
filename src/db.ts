@@ -4,6 +4,7 @@ import type { Licht, Mondgruppe } from './lib/astro';
 import type { Farbfamilie, Truebung } from './lib/wasser';
 import type { Schnappschuss } from './lib/prognose';
 import type { GewaesserTyp } from './lib/wassertemp';
+import type { Vereinsregel } from './lib/regeln-sachsen';
 
 export type Gewaesser = {
   id: string; name: string; typ: GewaesserTyp; lat: number; lon: number;
@@ -53,6 +54,8 @@ export type Einstellungen = {
   letzterKoeder?: string;
   gesehenAbzeichen: string[];
   wasserCheck?: { wert: Truebung; zeitpunkt: number };
+  vereinsregeln?: Vereinsregel[]; // fehlt = Vorschlag (grüne Strecken)
+  alarm?: { an: boolean; ab: number; gemeldet: string[]; geprueft?: number };
 };
 
 export const STANDARD: Einstellungen = {

@@ -108,3 +108,58 @@ export const ALLGEMEINE_REGELN = [
   'Köderfische vorher waidgerecht töten, lebende Köderfische sind verboten.',
   'Ganzjährig geschont sind u. a. Bitterling, Elritze, Groppe, Schlammpeitzger, Schmerle, Schneider, Steinbeißer, Stör, Zährte, Zope, Neunaugen, Edelkrebs und Muscheln.',
 ];
+
+// ---------- Was heute gilt ----------
+
+export type TagMonat = [number, number]; // [Monat, Tag]
+
+/** Regel aus der Gewässerordnung von Verein oder Pächter, vom Nutzer gepflegt (z. B. grüne Strecken). */
+export type Vereinsregel = { id: string; text: string; von: TagMonat; bis: TagMonat };
+
+export const VEREINSREGEL_VORSCHLAG: Vereinsregel[] = [
+  { id: 'gruen-kunstkoeder', text: 'Grüne Strecken (Salmonidengewässer): kein Angeln mit Kunstködern', von: [10, 1], bis: [4, 30] },
+];
+
+export const aktiveVereinsregeln = (l: Vereinsregel[], datum = new Date()) => l.filter((r) => imZeitraum(datum, [r.von, r.bis]));
+export const tagMonatTxt = (t: TagMonat) => tagTxt(t);
+
+/** Tage bis zum nächsten Eintreten von [Monat, Tag] (0 = heute). */
+export function tageBis([m, d]: TagMonat, datum = new Date()): number {
+  const heute = Date.UTC(datum.getFullYear(), datum.getMonth(), datum.getDate());
+  let ziel = Date.UTC(datum.getFullYear(), m - 1, d);
+  if (ziel < heute) ziel = Date.UTC(datum.getFullYear() + 1, m - 1, d);
+  return Math.round((ziel - heute) / 864e5);
+}
+
+export type Jetzt = {
+  geschont: { art: string; bis: string }[];
+  beginntBald: { art: string; ab: string; inTagen: number }[];
+  endetBald: { art: string; bis: string; inTagen: number }[];
+  raubfisch: { aktiv: boolean; text: string };
+};
+
+/** Was heute nach der Verordnung gilt: laufende und bald beginnende Schonzeiten (ohne ganzjährig geschonte Arten). */
+export function jetztGilt(datum = new Date(), vorlauf = 30): Jetzt {
+  const out: Jetzt = { geschont: [], beginntBald: [], endetBald: [], raubfisch: { aktiv: false, text: '' } };
+  Object.entries(REG).forEach(([art, r]) => {
+    if (!r.sz || r.ganzjaehrig) return;
+    const fliess = r.fliess ? ' (in Fließgewässern)' : '';
+    if (imZeitraum(datum, r.sz)) {
+      out.geschont.push({ art: artName(art) + fliess, bis: tagTxt(r.sz[1]) });
+      const n = tageBis(r.sz[1], datum);
+      if (n <= vorlauf) out.endetBald.push({ art: artName(art) + fliess, bis: tagTxt(r.sz[1]), inTagen: n });
+    } else {
+      const n = tageBis(r.sz[0], datum);
+      if (n <= vorlauf) out.beginntBald.push({ art: artName(art) + fliess, ab: tagTxt(r.sz[0]), inTagen: n });
+    }
+  });
+  out.geschont.sort((a, b) => a.art.localeCompare(b.art, 'de'));
+  out.beginntBald.sort((a, b) => a.inTagen - b.inTagen);
+  const aktiv = raubfischkoederVerbot(datum);
+  const n = tageBis(aktiv ? [4, 30] : [2, 1], datum);
+  out.raubfisch = {
+    aktiv,
+    text: aktiv ? `Raubfischköder sind verboten (noch bis 30. Apr., ${n} Tage).` : n <= vorlauf ? `Ab 1. Feb. sind Raubfischköder verboten (in ${n} Tagen).` : 'Raubfischköder sind erlaubt (Verbot 1. Feb. – 30. Apr.).',
+  };
+  return out;
+}

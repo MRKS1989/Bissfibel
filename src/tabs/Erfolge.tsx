@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { db, ladeSession, speichereEinstellungen, speichereSession, type Angeltag, type Fang, type Koeder } from '../db';
 import { Icon, IC } from '../components/Icons';
 import { FotoKnopf } from '../components/Koeder';
+import { RegelnJetzt } from '../components/RegelnJetzt';
 import { Sheet, useMeldung } from '../components/Ui';
 import { useAngeltage, useEinstellungen, useFoto, useKoeder, useSession } from '../hooks/daten';
 import { ARTEN, artName } from '../lib/arten';
@@ -10,12 +11,8 @@ import { beispielTage } from '../lib/demo';
 import { loescheFoto, speichereFoto, verkleinern } from '../lib/foto';
 import { EHRLICH_HINWEIS, farbAuswertung, koederAuswertung, MIN_TAGE_MYTHEN, mythenCheck } from '../lib/lernen';
 import { abzeichen, pbVerlauf, PUNKTE_TEXT, punkte, RAENGE, rangVon, SAISON_NAME, saisonziele, stufenKeys, STUFEN_NAME } from '../lib/punkte';
-import { ALLGEMEINE_REGELN, REGELN_HINWEIS, REGELN_STAND } from '../lib/regeln-sachsen';
 import { rueckblick, verfuegbareJahre, type Rueckblick } from '../lib/rueckblick';
 import { FARBEN, TRUEBUNG, type Truebung } from '../lib/wasser';
-import { OSM_HINWEIS } from '../lib/gewaesser-suche';
-import { PEGEL_QUELLE } from '../lib/pegel';
-import { WETTER_QUELLE } from '../lib/wetter';
 import { datumKeyKurz, datumKurz, fmt1, teile, uhrzeit } from '../lib/zeit';
 
 type FangMitTag = { f: Fang; t: Angeltag; laeuft?: boolean };
@@ -52,6 +49,7 @@ export function Erfolge() {
         <span className="hint">{demo ? 'Beispiel: 60 erfundene Angeltage' : ''}</span>
         <button type="button" onClick={() => setDemo(!demo)}>{demo ? 'Zurück zu meinen Daten' : 'Mit Beispieldaten ansehen'}</button>
       </div>
+      <RegelnJetzt />
       <RangBox tage={tage} koeder={koeder} />
       {!demo && <SaisonZiele tage={tage} />}
       <PBs tage={pbTage} demo={demo} />
@@ -59,7 +57,6 @@ export function Erfolge() {
       <WasFaengt tage={tage} />
       <MythenCheck tage={tage} />
       <Jahresrueckblick tage={tage} koeder={koeder} demo={demo} />
-      <InfoRegeln />
     </>
   );
 }
@@ -420,22 +417,4 @@ function alsBild(r: Rueckblick) {
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 2000);
   }, 'image/png');
-}
-
-function InfoRegeln() {
-  return (
-    <div className="panel settings">
-      <details>
-        <summary>Regeln in Sachsen und Datenquellen</summary>
-        <div className="inner">
-          <ul className="why">{ALLGEMEINE_REGELN.map((r) => <li key={r}>{r}</li>)}</ul>
-          <p className="hint">{REGELN_STAND}. {REGELN_HINWEIS}</p>
-          <p className="hint">Prognosen ohne Gewähr. Schonzeiten, Mindestmaße und die Gewässerordnung sind verbindlich.</p>
-          <p className="hint">Ob du an einem Gewässer angeln darfst: <a href="https://angelatlas-sachsen.de" target="_blank" rel="noopener">Angelatlas Sachsen</a>.</p>
-          <p className="src">{WETTER_QUELLE} · Gewässer und Karte {OSM_HINWEIS} · {PEGEL_QUELLE}</p>
-          <p className="hint">Deine Daten bleiben auf diesem Gerät. Kein Tracking, keine Analyse-Dienste.</p>
-        </div>
-      </details>
-    </div>
-  );
 }

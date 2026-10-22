@@ -184,3 +184,28 @@ describe('Prognose', () => {
     expect(schnappschuss(r, 'see', 'hecht', start + 2 * STUNDE)).toBeNull();
   });
 });
+
+import { aktiveVereinsregeln, jetztGilt, tageBis, VEREINSREGEL_VORSCHLAG } from './regeln-sachsen';
+
+describe('Was heute gilt', () => {
+  it('22. Oktober: Forellen geschont, Raubfischköder erlaubt', () => {
+    const j = jetztGilt(new Date(2026, 9, 22));
+    expect(j.geschont.map((g) => g.art)).toEqual(expect.arrayContaining(['Bachforelle', 'Maräne', 'Regenbogenforelle (in Fließgewässern)']));
+    expect(j.geschont.some((g) => g.art === 'Zander')).toBe(false);
+    expect(j.raubfisch.aktiv).toBe(false);
+  });
+  it('Januar: Zander-Schonzeit und Raubfischköder-Verbot kündigen sich an', () => {
+    const j = jetztGilt(new Date(2027, 0, 10));
+    expect(j.beginntBald.map((b) => b.art)).toEqual(expect.arrayContaining(['Hecht', 'Zander']));
+    expect(j.raubfisch.text).toMatch(/in 22 Tagen/);
+  });
+  it('März: Verbot aktiv', () => expect(jetztGilt(new Date(2027, 2, 1)).raubfisch.aktiv).toBe(true));
+  it('Tage bis zu einem Datum, auch über den Jahreswechsel', () => {
+    expect(tageBis([10, 1], new Date(2026, 9, 1))).toBe(0);
+    expect(tageBis([2, 1], new Date(2026, 11, 31))).toBe(32);
+  });
+  it('Vereinsregel grüne Strecken gilt ab 1. Oktober', () => {
+    expect(aktiveVereinsregeln(VEREINSREGEL_VORSCHLAG, new Date(2026, 9, 1))).toHaveLength(1);
+    expect(aktiveVereinsregeln(VEREINSREGEL_VORSCHLAG, new Date(2026, 8, 30))).toHaveLength(0);
+  });
+});

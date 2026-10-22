@@ -82,7 +82,7 @@ export function AlarmSchalter() {
       <div className="row between">
         <div style={{ flex: '1 1 200px', minWidth: 0 }}>
           <h3>Alarm</h3>
-          <p className="hint">Benachrichtigung, wenn in den nächsten 2 Tagen ein Zeitfenster ab {fmt1(e.alarm?.ab ?? ALARM_AB)} kommt (deine Top-Fische, Gewässer im Umkreis). Nie bei Sturm.</p>
+          <p className="hint">Benachrichtigung, wenn in den nächsten 2 Tagen ein Zeitfenster ab {fmt1(ALARM_AB)} kommt (deine Top-Fische, Gewässer im Umkreis). Nie bei Sturm.</p>
         </div>
         <button type="button" role="switch" aria-checked={an} className={'switch' + (an ? ' on' : '')} onClick={umschalten} aria-label="Alarm-Benachrichtigung">
           <span />

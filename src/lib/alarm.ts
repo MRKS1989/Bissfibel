@@ -1,4 +1,4 @@
-// Alarm: Zeitfenster ab Bisswert 7 in den nächsten 2 Tagen. Nie bei Sturm oder Unwettergefahr melden.
+// Alarm: Zeitfenster ab Bisswert 9 in den nächsten 2 Tagen. Nie bei Sturm oder Unwettergefahr melden.
 import { artName } from './arten';
 import type { TagesPrognose } from './prognose';
 import { ALARM_AB, sicherheitsWarnung } from './score';

@@ -21,7 +21,7 @@ describe('Punkte', () => {
     expect(grundpunkte([tag({}, [{}])])).toBe(10 + 25);
   });
   it('Extras: live, Wasser-Check, Feedback, Köder, Foto, Alarm, PB', () => {
-    const t1 = tag({ live: true, wasserCheck: true, prognoseFeedback: 'ja' }, [{ laengeCm: 50, koeder: 'Gummi', fotoId: 'x', score: 7.2 }]);
+    const t1 = tag({ live: true, wasserCheck: true, prognoseFeedback: 'ja' }, [{ laengeCm: 50, koeder: 'Gummi', fotoId: 'x', score: 9.2 }]);
     expect(grundpunkte([t1])).toBe(10 + 5 + 3 + 2 + 2 + 2 + 25 + 20);
     const t2 = tag({}, [{ laengeCm: 60 }]);
     expect(grundpunkte([t1, t2]) - grundpunkte([t1])).toBe(10 + 15);

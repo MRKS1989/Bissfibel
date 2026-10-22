@@ -13,7 +13,8 @@ export type Faktoren = { wasser: number; licht: number; bewoelkung: number; wind
 export type Bewertung = { score: number; f: Faktoren };
 
 export const STURM_KMH = 35;
-export const ALARM_AB = 7;
+export const ALARM_AB = 9; // „Alarm“ erst ab 9, darunter lohnt keine Meldung
+export const GUT_AB = 7;
 
 /** Trapez: 0 unter Minimum, steigt bis Optimum-Beginn, 1 im Optimum, fällt bis Maximum. */
 export function trapez(v: number, [a, b, c, d]: readonly number[]): number {
@@ -65,7 +66,7 @@ export function bestesFenster(scores: number[], vonStunde = 0): { start: number;
 
 export type Stufe = 'g' | 'w' | 'b';
 export const stufe = (s: number): [Stufe, string] =>
-  s >= ALARM_AB ? ['g', 'Gute Chancen'] : s >= 5 ? ['w', 'Mittel'] : ['b', 'Eher schwach'];
+  s >= GUT_AB ? ['g', 'Gute Chancen'] : s >= 5 ? ['w', 'Mittel'] : ['b', 'Eher schwach'];
 
 // ---------- Begründungen, je Art formuliert ----------
 

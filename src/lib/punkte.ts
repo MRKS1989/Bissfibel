@@ -2,7 +2,9 @@
 import type { Angeltag, Fang, Koeder } from '../db';
 import { teile, zeitpunkt, TAG } from './zeit';
 
-export const ALARM = 7;
+import { ALARM_AB as ALARM } from './score';
+
+export { ALARM };
 
 export const RAENGE: [number, string][] = [
   [0, 'Wurmbader'], [100, 'Stippfischer'], [250, 'Uferläufer'], [500, 'Petrijünger'], [900, 'Gewässerkenner'],

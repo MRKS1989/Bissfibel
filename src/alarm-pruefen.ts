@@ -37,7 +37,7 @@ export async function alarmPruefen(zeigen: Zeigen, jetzt = Date.now()): Promise<
     const r = reihen.get(wetterKey(w.lat, w.lon));
     return r ? arten.map((art) => ({ wId: w.id, wName: w.name, art, tage: prognose(r, w.typ, art, jetzt, 3) })) : [];
   });
-  const treffer = alarmFenster(eintraege, jetzt, e.alarm.gemeldet ?? [], e.alarm.ab);
+  const treffer = alarmFenster(eintraege, jetzt, e.alarm.gemeldet ?? []);
   for (const t of treffer) await zeigen(t.titel, t.text, t.key);
   await speichereEinstellungen({
     alarm: { ...e.alarm, gemeldet: [...(e.alarm.gemeldet ?? []), ...treffer.map((t) => t.key)].slice(-60), geprueft: jetzt },

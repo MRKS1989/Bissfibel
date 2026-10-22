@@ -231,3 +231,15 @@ describe('Alarm', () => {
     expect(alarmFenster([{ wId: 'g1', wName: 'Kiessee', art: 'zander', tage }], jetzt, [], 0)).toHaveLength(0);
   });
 });
+
+import { koederFuerWasser } from './wasser';
+
+describe('Köder aus der Box zum Wasser', () => {
+  it('stark trüb am Tag: Chartreuse gut, Weiß geht, Barsch-Dekor eher nicht', () => {
+    expect(koederFuerWasser('chartreuse', 'trueb', 'tag')).toEqual({ urteil: 'gut', grund: 'leuchtet auch bei wenig Sicht – passt zu stark trübem Wasser' });
+    expect(koederFuerWasser('weiss', 'trueb', 'tag').urteil).toBe('geht');
+    expect(koederFuerWasser('natur', 'trueb', 'tag')).toMatchObject({ urteil: 'nicht', grund: expect.stringMatching(/bei stark trübem Wasser eher schwach$/) });
+  });
+  it('Dämmerung: Schwarz passt gut', () => expect(koederFuerWasser('schwarz', 'klar', 'daemmerung').urteil).toBe('gut'));
+  it('ohne Farbe: Hinweis', () => expect(koederFuerWasser(undefined, 'braun', 'tag').urteil).toBe('ohne'));
+});

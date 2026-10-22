@@ -171,3 +171,42 @@ export function wasserAlter(zeitpunkt: number, jetzt = Date.now()): string {
   const d = Math.floor((jetzt - zeitpunkt) / 864e5);
   return d < 1 ? 'heute' : d < 2 ? 'gestern' : `vor ${d} Tagen`;
 }
+
+// ---------- Köder aus der eigenen Box zum Wasser bewerten ----------
+
+/** Farben, die bei dieser Trübung als zweite Wahl noch funktionieren. */
+const GEHT_AUCH: Record<Truebung, Farbfamilie[]> = {
+  klar: ['motoroil', 'weiss', 'gold'],
+  leicht: ['natur', 'weissfisch', 'orange', 'gold'],
+  trueb: ['weiss', 'schwarz', 'gold'],
+  braun: ['firetiger', 'schwarz', 'weiss'],
+};
+
+const FARB_GRUND: Record<Farbfamilie, string> = {
+  natur: 'natürliches Dekor, wirkt bei guter Sicht echt',
+  weissfisch: 'Silber blitzt wie ein Beutefisch',
+  ghost: 'fast durchsichtig, gut für scheue Fische bei klarem Wasser',
+  weiss: 'hell mit viel Kontrast',
+  chartreuse: 'leuchtet auch bei wenig Sicht',
+  orange: 'gut sichtbar bei wenig Sicht',
+  firetiger: 'grell mit starkem Kontrast',
+  gold: 'leuchtet in braunem und trübem Wasser',
+  motoroil: 'dezent, eher für klares Wasser',
+  schwarz: 'starke Silhouette bei wenig Licht oder trübem Wasser',
+  rotpink: 'Rot verschwindet in der Tiefe schnell',
+  uv: 'leuchtet bei wenig Licht',
+};
+
+const WASSER_DATIV: Record<Truebung, string> = { klar: 'klarem Wasser', leicht: 'leicht trübem Wasser', trueb: 'stark trübem Wasser', braun: 'Moorwasser' };
+
+export type KoederUrteil = 'gut' | 'geht' | 'nicht' | 'ohne';
+export const KOEDER_URTEIL: Record<KoederUrteil, string> = { gut: 'passt gut', geht: 'geht auch', nicht: 'eher nicht', ohne: 'Farbe fehlt' };
+
+/** Bewertet einen Köder für Trübung und Licht, mit kurzem Grund. */
+export function koederFuerWasser(farbe: Farbfamilie | undefined, t: Truebung, licht: Licht): { urteil: KoederUrteil; grund: string } {
+  if (!farbe) return { urteil: 'ohne', grund: 'Trag die Farbe in der Köderbox ein, dann kann die App ihn einordnen.' };
+  const { farben } = koederRat(t, licht);
+  if (farben.includes(farbe)) return { urteil: 'gut', grund: `${FARB_GRUND[farbe]} – passt zu ${WASSER_DATIV[t]}` };
+  if (GEHT_AUCH[t].includes(farbe) || (licht !== 'tag' && farbe === 'weiss')) return { urteil: 'geht', grund: FARB_GRUND[farbe] };
+  return { urteil: 'nicht', grund: `${FARB_GRUND[farbe]} – bei ${WASSER_DATIV[t]} eher schwach` };
+}

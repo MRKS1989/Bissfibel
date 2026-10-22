@@ -1,11 +1,12 @@
 // Wasser-Check: kurze Hilfe zur Köderwahl, nicht an ein Gewässer gebunden. 2 Tage gemerkt und beim Angeln übernommen.
 import { useState } from 'react';
+import type { Koeder } from '../db';
 import { ladeSession, speichereEinstellungen, speichereSession } from '../db';
 import { useAngeltage, useEinstellungen, useKoeder } from '../hooks/daten';
 import { lichtKlasse } from '../lib/astro';
 import { wasserAuswerten } from '../lib/foto';
 import { EHRLICH_HINWEIS, farbAuswertung, koederAuswertung } from '../lib/lernen';
-import { FARBEN, koederRat, NAYS, NAYS_URL, naysAuswahl, TRUEBUNG, TRUEBUNG_TIPPS, WASSERCHECK_GUELTIG_MS, wasserAlter, type Truebung } from '../lib/wasser';
+import { FARBEN, koederFuerWasser, KOEDER_URTEIL, koederRat, type KoederUrteil, NAYS, NAYS_URL, naysAuswahl, TRUEBUNG, TRUEBUNG_TIPPS, WASSERCHECK_GUELTIG_MS, wasserAlter, type Truebung } from '../lib/wasser';
 import { ShadSvg } from './Icons';
 import { FotoKnopf, KoederBild } from './Koeder';
 
@@ -35,7 +36,13 @@ export function WasserCheck() {
   }
 
   const rat = t ? koederRat(t, licht) : null;
-  const passt = rat ? koeder.filter((k) => k.farbe && rat.farben.includes(k.farbe)) : [];
+  // Jeden Köder aus der Box bewerten: passt gut, geht auch, eher nicht. Eigene Fänge bei dieser Trübung zählen mit.
+  const RANG = { gut: 0, geht: 1, ohne: 2, nicht: 3 } as const;
+  const box = t ? koeder.map((k) => ({
+    k, ...koederFuerWasser(k.farbe, t, licht),
+    faenge: tage.reduce((a, d) => a + (d.wetter.truebung === t ? d.faenge.filter((f) => f.koederId === k.id).length : 0), 0),
+  })).sort((a, b) => RANG[a.urteil] - RANG[b.urteil] || b.faenge - a.faenge || +b.k.lieblingskoeder - +a.k.lieblingskoeder) : [];
+  const vorne = box.filter((x) => x.urteil !== 'nicht'), hinten = box.filter((x) => x.urteil === 'nicht');
   const fa = t ? farbAuswertung(t, tage) : null, ka = t ? koederAuswertung(t, tage) : null;
 
   return (
@@ -70,6 +77,16 @@ export function WasserCheck() {
             {rat.farben.map((f) => <div key={f} className="sw"><i style={{ background: FARBEN[f][1] }} />{FARBEN[f][0]}</div>)}
           </div>
           <p>{rat.warum}</p>
+          <h3>Deine Köderbox bei diesem Wasser</h3>
+          {!koeder.length && <p className="hint">Noch keine Köder angelegt. Fotografiere sie im Tab „Angeln“ unter „Meine Köderbox“, dann sagt dir der Wasser-Check, welche passen.</p>}
+          {vorne.length > 0 && <div className="list">{vorne.map((x) => <BoxZeile key={x.k.id} {...x} />)}</div>}
+          {koeder.length > 0 && !box.some((x) => x.urteil === 'gut') && <p className="hint">Kein Köder in deiner Box passt richtig. Am besten wären jetzt: {rat.farben.map((f) => FARBEN[f][0]).join(', ')}.</p>}
+          {hinten.length > 0 && (
+            <details>
+              <summary>Weniger passend ({hinten.length})</summary>
+              <div className="list inner">{hinten.map((x) => <BoxZeile key={x.k.id} {...x} />)}</div>
+            </details>
+          )}
           <h3>Dekor</h3>
           <p>{TRUEBUNG_TIPPS[t].dekor}</p>
           <div className="nays">
@@ -83,14 +100,6 @@ export function WasserCheck() {
           </p>
           <h3>So fischst du jetzt</h3>
           <ul className="why">{[...TRUEBUNG_TIPPS[t].tun, ...rat.tipps].map((x) => <li key={x}>{x}</li>)}</ul>
-          {passt.length > 0 && (
-            <>
-              <h3>Passt jetzt aus deiner Köderbox</h3>
-              <div className="lure-strip">
-                {passt.map((k) => <div key={k.id} className="lure-chip"><KoederBild k={k} klein /><span>{k.name}</span></div>)}
-              </div>
-            </>
-          )}
           {(fa || ka) && (
             <div className="learn">
               <h3>Bei dir</h3>
@@ -102,6 +111,19 @@ export function WasserCheck() {
           <p className="hint">Gilt 2 Tage und wird beim Angeln automatisch übernommen. Faustregeln aus der Angelpraxis, keine Garantie.</p>
         </>
       )}
+    </div>
+  );
+}
+
+function BoxZeile({ k, urteil, grund, faenge }: { k: Koeder; urteil: KoederUrteil; grund: string; faenge: number }) {
+  return (
+    <div className="item">
+      <KoederBild k={k} klein />
+      <div className="main">
+        <div>{k.name}</div>
+        <div>{grund}{faenge ? ` · ${faenge} ${faenge === 1 ? 'Fang' : 'Fänge'} bei diesem Wasser` : ''}</div>
+      </div>
+      <span className={'vt ' + (urteil === 'gut' ? 'ok' : urteil === 'nicht' ? '' : 'no')}>{KOEDER_URTEIL[urteil]}</span>
     </div>
   );
 }

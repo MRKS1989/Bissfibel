@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Logo } from './components/Logo';
 import { TabBar, type TabId } from './components/TabBar';
+import { useAlarmPruefung } from './components/AlarmSchalter';
 import { FeierProvider } from './components/Feier';
 import { MeldungProvider } from './components/Ui';
 import { useAngeltage, useEinstellungen, useKoeder, useOnline, useSession, useTick } from './hooks/daten';
@@ -18,6 +19,7 @@ export function App() {
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const online = useOnline();
   const neu = useNeueAbzeichen();
+  useAlarmPruefung();
 
   function toggleTheme() {
     const t = nextTheme(theme);

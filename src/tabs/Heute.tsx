@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { speichereEinstellungen, type Gewaesser } from '../db';
+import { AlarmSchalter } from '../components/AlarmSchalter';
 import { Icon, IC, MoonSvg, SunArc, WindSock, WxIcon, wetterWort } from '../components/Icons';
 import { OrtSuche } from '../components/OrtSuche';
 import { RegelZeile } from '../components/Regeln';
@@ -79,6 +80,7 @@ export function Heute({ geheZu }: { geheZu: (t: TabId) => void }) {
 
       <Hero art={art} best={best} waters={waters} wetterLaedt={wetter.laden} wetterFehler={wetter.fehler} geheZu={geheZu}
         tage={tage} umkreis={e.umkreisKm} />
+      <AlarmSchalter />
 
       {detailW && (
         <div className="panel" id="detail">

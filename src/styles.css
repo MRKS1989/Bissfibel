@@ -364,3 +364,9 @@ label.f{flex:0 0 auto}
 .rankbadge.t2{box-shadow:0 0 0 6px #9AA6AE}
 .rankbadge.t3{box-shadow:0 0 0 6px var(--gold)}
 .picks button small{display:block}
+/* Schalter (an/aus) */
+.switch{flex:0 0 auto;width:56px;height:32px;padding:0;border-radius:99px;background:var(--line);border:0;position:relative}
+.switch span{position:absolute;top:3px;left:3px;width:26px;height:26px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch.on{background:var(--good)}
+.switch.on span{left:27px}
+@media (prefers-reduced-motion:no-preference){.switch span{transition:left .2s ease}}

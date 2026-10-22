@@ -10,6 +10,10 @@ export default defineConfig({
     // Installierbar und offline nutzbar: App-Dateien und Schriften werden auf dem Gerät gespeichert.
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.ts',
+      injectManifest: { globPatterns: ['**/*.{js,css,html,svg,png,woff2}'] },
       includeAssets: ['app-icon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'Bissfibel',
@@ -26,18 +30,6 @@ export default defineConfig({
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },
           { src: 'icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
-        ],
-      },
-      workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
-        navigateFallback: 'index.html',
-        runtimeCaching: [
-          {
-            // Kartenkacheln sparsam zwischenspeichern (OSM-Nutzungsrichtlinie).
-            urlPattern: /^https:\/\/tile\.openstreetmap\.org\//,
-            handler: 'CacheFirst',
-            options: { cacheName: 'osm-kacheln', expiration: { maxEntries: 300, maxAgeSeconds: 7 * 24 * 3600 } },
-          },
         ],
       },
     }),

@@ -209,3 +209,25 @@ describe('Was heute gilt', () => {
     expect(aktiveVereinsregeln(VEREINSREGEL_VORSCHLAG, new Date(2026, 8, 30))).toHaveLength(0);
   });
 });
+
+import { alarmFenster } from './alarm';
+
+describe('Alarm', () => {
+  const start = zeitpunkt('2026-10-05', '00:00');
+  const jetzt = zeitpunkt('2026-10-19', '08:00');
+  const mk = (f: (i: number) => Partial<Stunde> = () => ({})) => ({ ...ZWICKAU, abgerufen: start,
+    stunden: Array.from({ length: 21 * 24 }, (_, i) => ({ ts: start + i * STUNDE, t: 14, p: 1015 - (i % 24 < 12 ? 0 : 3), c: 85, w: 15, rp: 10, ...f(i) })) });
+  it('meldet gute Fenster in den nächsten 48 h, jedes nur einmal', () => {
+    const tage = prognose(mk(), 'see', 'zander', jetzt, 3);
+    const a = alarmFenster([{ wId: 'g1', wName: 'Kiessee', art: 'zander', tage }], jetzt, [], 6);
+    expect(a.length).toBeGreaterThan(0);
+    expect(a.length).toBeLessThanOrEqual(3);
+    expect(a.every((t) => t.ts <= jetzt + 48 * STUNDE)).toBe(true);
+    expect(a[0].titel).toMatch(/^Alarm: Zander/);
+    expect(alarmFenster([{ wId: 'g1', wName: 'Kiessee', art: 'zander', tage }], jetzt, a.map((t) => t.key), 6)).toHaveLength(0);
+  });
+  it('meldet nie bei Sturm', () => {
+    const tage = prognose(mk(() => ({ w: 45 })), 'see', 'zander', jetzt, 3);
+    expect(alarmFenster([{ wId: 'g1', wName: 'Kiessee', art: 'zander', tage }], jetzt, [], 0)).toHaveLength(0);
+  });
+});

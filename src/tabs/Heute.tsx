@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { speichereEinstellungen, type Gewaesser } from '../db';
 import { AlarmSchalter } from '../components/AlarmSchalter';
 import { Icon, IC, MoonSvg, SunArc, WindSock, WxIcon, wetterWort } from '../components/Icons';
@@ -224,6 +224,9 @@ function TagDetail({ w, tag, art, tage, lernOffen, setLernOffen }: {
   lernOffen: boolean; setLernOffen: (b: boolean) => void;
 }) {
   const bs = tag.bestes.start;
+  const [stunde, setStunde] = useState<number | null>(null);
+  useEffect(() => setStunde(null), [tag.key, w.id]);
+  const gewaehlt = Math.min(stunde ?? bs, tag.stunden.length - 1);
   const m = tag.stunden[Math.min(bs + 1, tag.stunden.length - 1)];
   const nacht = m.b.licht === 'nacht';
   const u = urteile(m.b, m.bew.f, art);
@@ -238,14 +241,26 @@ function TagDetail({ w, tag, art, tage, lernOffen, setLernOffen }: {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-      <div className="hours" role="img" aria-label="Bisswert je Stunde">
+      {/* Spaltenzahl folgt den Stunden des Tags: 23 oder 25 bei der Zeitumstellung. */}
+      <div className="hours" style={{ gridTemplateColumns: `repeat(${tag.stunden.length}, minmax(0, 1fr))` }}>
         {tag.stunden.map((s, h) => (
-          <div key={s.ts} className={(h >= bs && h < bs + 3 ? 'top ' : '') + (s.b.licht === 'nacht' ? 'night' : '')}
-            style={{ height: `${Math.max(2, s.bew.score * 10)}%` }} title={`${s.h} Uhr: ${fmt1(s.bew.score)}`} />
+          <button key={s.ts} type="button" aria-label={`${s.h} Uhr: Bisswert ${fmt1(s.bew.score)}`} aria-pressed={h === gewaehlt}
+            className={(h >= bs && h < bs + 3 ? 'top ' : '') + (s.b.licht === 'nacht' ? 'night ' : '') + (h === gewaehlt ? 'sel' : '')}
+            style={{ height: `${Math.max(2, s.bew.score * 10)}%` }} onClick={() => setStunde(h)} />
         ))}
       </div>
-      <div className="haxis">{tag.stunden.map((s, i) => <span key={s.ts}>{i % 6 === 0 ? s.h : ''}</span>)}</div>
-      <p className="hint">Bestes Fenster ab {uhrzeit(tag.bestes.ts)} Uhr · blass = Nacht · Wasser geschätzt ±2 °C</p>
+      <div className="haxis" style={{ gridTemplateColumns: `repeat(${tag.stunden.length}, minmax(0, 1fr))` }}>
+        {tag.stunden.map((s, i) => <span key={s.ts}>{s.h % 6 === 0 && tag.stunden.findIndex((x) => x.h === s.h) === i ? s.h : ''}</span>)}
+      </div>
+      {(() => {
+        const s = tag.stunden[gewaehlt];
+        return (
+          <p className="stundeninfo">
+            <b>{uhrzeit(s.ts)} Uhr: Bisswert {fmt1(s.bew.score)}</b> · {Math.round(s.s.t)} °C · {wetterWort(s.s.c, s.s.rp, s.b.licht === 'nacht')} · Wind {Math.round(s.s.w)} km/h
+          </p>
+        );
+      })()}
+      <p className="hint">Balken antippen für die Stunde · bestes Fenster ab {uhrzeit(tag.bestes.ts)} Uhr · blass = Nacht · Wasser geschätzt ±2 °C</p>
       {warn && <div className="warnbox" role="alert">{warn}</div>}
 
       <div className="cond">
@@ -254,7 +269,7 @@ function TagDetail({ w, tag, art, tage, lernOffen, setLernOffen }: {
           <div>
             <h4>Wetter im besten Fenster</h4>
             <div className="big">{Math.round(m.s.t)}<small> °C Luft</small></div>
-            <div>{wetterWort(m.s.c, m.s.rp)}</div>
+            <div>{wetterWort(m.s.c, m.s.rp, nacht)}</div>
           </div>
           <div className="kv">
             <span className="mini-ic"><Icon d={IC.drop} />Regen</span><b>{Math.round(m.s.rp)} %</b>

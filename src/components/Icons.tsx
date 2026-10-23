@@ -34,8 +34,8 @@ export function Icon({ d, title }: { d: string; title?: string }) {
   );
 }
 
-export function wetterWort(c: number, rp: number): string {
-  return rp >= 60 ? 'Regen' : rp >= 40 ? 'Schauer möglich' : c > 85 ? 'Bedeckt' : c > 55 ? 'Stark bewölkt' : c > 25 ? 'Leicht bewölkt' : 'Sonnig';
+export function wetterWort(c: number, rp: number, nacht = false): string {
+  return rp >= 60 ? 'Regen' : rp >= 40 ? 'Schauer möglich' : c > 85 ? 'Bedeckt' : c > 55 ? 'Stark bewölkt' : c > 25 ? 'Leicht bewölkt' : nacht ? 'Klar' : 'Sonnig';
 }
 
 export function WxIcon({ c, rp, nacht, className = 'wxi' }: { c: number; rp: number; nacht: boolean; className?: string }) {

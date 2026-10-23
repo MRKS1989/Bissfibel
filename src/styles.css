@@ -370,3 +370,9 @@ label.f{flex:0 0 auto}
 .switch.on{background:var(--good)}
 .switch.on span{left:27px}
 @media (prefers-reduced-motion:no-preference){.switch span{transition:left .2s ease}}
+/* Stundenbalken antippbar */
+.hours button{padding:0;border:0;border-radius:2px 2px 0 0;background:var(--water);min-height:2px;opacity:.85;cursor:pointer}
+.hours button.top{background:var(--accent);opacity:1}
+.hours button.night{opacity:.35}
+.hours button.sel{outline:2px solid var(--ink);outline-offset:1px;opacity:1}
+.stundeninfo{margin:0;font-size:14px;background:var(--bg);border-radius:10px;padding:8px 10px}
